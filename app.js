@@ -1,4 +1,4 @@
- const express = require('express');
+const express = require('express');
 const axios = require('axios');
 const crypto = require('crypto');
 
@@ -62,7 +62,10 @@ const HTML_TEMPLATE = `
             letter-spacing: 2px;
             font-weight: 700;
         }
-        .input-group { position: relative; margin-bottom: 1.2rem; }
+        .input-group {
+            position: relative;
+            margin-bottom: 1.2rem;
+        }
         input {
             width: 100%;
             padding: 14px 16px;
@@ -195,29 +198,6 @@ const HTML_TEMPLATE = `
 
     <script>
         let currentCaptchaGid = '-1';
-        let cooldownTimer = null;
-        const COOLDOWN_SECONDS = 15;
-
-        function startCooldown() {
-            const btn = document.getElementById('checkBtn');
-            let remaining = COOLDOWN_SECONDS;
-            btn.disabled = true;
-            btn.textContent = \`Подождите \${remaining}с...\`;
-            
-            if (cooldownTimer) clearInterval(cooldownTimer);
-            
-            cooldownTimer = setInterval(() => {
-                remaining--;
-                if (remaining <= 0) {
-                    clearInterval(cooldownTimer);
-                    cooldownTimer = null;
-                    btn.disabled = false;
-                    btn.textContent = 'Проверить';
-                } else {
-                    btn.textContent = \`Подождите \${remaining}с...\`;
-                }
-            }, 1000);
-        }
 
         async function checkAccount() {
             const u = document.getElementById('username').value;
@@ -262,7 +242,8 @@ const HTML_TEMPLATE = `
                 res.textContent = 'Ошибка соединения с сервером';
                 res.style.display = 'block';
             } finally {
-                startCooldown();
+                btn.disabled = false;
+                btn.textContent = 'Проверить';
             }
         }
 
@@ -314,7 +295,8 @@ const HTML_TEMPLATE = `
                 res.textContent = 'Ошибка соединения с сервером';
                 res.style.display = 'block';
             } finally {
-                startCooldown();
+                btn.disabled = false;
+                btn.textContent = 'Проверить';
             }
         }
     </script>
@@ -386,7 +368,7 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
         });
         rsaData = rsaResponse.data;
     } catch (error) {
-        return { status: 'error', message: \`Ошибка сети при получении ключа: \${error.message}\` };
+        return { status: 'error', message: `Ошибка сети при получении ключа: ${error.message}` };
     }
 
     if (!rsaData.success) {
@@ -402,7 +384,7 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
         );
         encryptedPasswordB64 = encrypted.toString('base64');
     } catch (error) {
-        return { status: 'error', message: \`Ошибка шифрования: \${error.message}\` };
+        return { status: 'error', message: `Ошибка шифрования: ${error.message}` };
     }
 
     const payload = new URLSearchParams({
@@ -427,10 +409,7 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
         });
         loginData = loginResponse.data;
     } catch (error) {
-        if (error.response && error.response.status === 429) {
-            return { status: 'error', message: 'Слишком много попыток. Steam временно заблокировал запросы. Подождите 15-30 минут.' };
-        }
-        return { status: 'error', message: \`Ошибка сети при входе: \${error.message}\` };
+        return { status: 'error', message: `Ошибка входа: ${error.message}` };
     }
 
     if (loginData.success) {
@@ -443,7 +422,7 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
             status: 'captcha',
             message: 'Требуется капча',
             captcha_gid: newCaptchaGid,
-            captcha_url: \`https://steamcommunity.com/login/rendercaptcha/?gid=\${newCaptchaGid}\`
+            captcha_url: `https://steamcommunity.com/login/rendercaptcha/?gid=${newCaptchaGid}`
         };
     }
 
@@ -460,7 +439,7 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
         return { status: 'error', message: 'аккаунт не работает (неверный пароль)' };
     }
 
-    return { status: 'error', message: \`аккаунт не работает (\${msg})\` };
+    return { status: 'error', message: `аккаунт не работает (${msg})` };
 }
 
 app.get('/', (req, res) => {
@@ -484,5 +463,5 @@ app.post('/check', async (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(\`Сервер запущен на порту \${PORT}\`);
+    console.log(`Сервер запущен на порту ${PORT}`);
 });
