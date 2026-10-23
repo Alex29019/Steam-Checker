@@ -3,7 +3,6 @@ const axios = require('axios');
 const crypto = require('crypto');
 
 const app = express();
-// КРИТИЧЕСКИ ВАЖНО для Render: используем порт из переменных окружения
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
@@ -159,6 +158,64 @@ const HTML_TEMPLATE = `
 </html>
 `;
 
+/**
+ * Собирает корректный PEM из hex-модуля и экспоненты Steam.
+ * Формат: SubjectPublicKeyInfo (ASN.1 DER) с алгоритмом rsaEncryption.
+ */
+function buildRSAPublicKeyPEM(modHex, expHex) {
+    const modBuf = Buffer.from(modHex, 'hex');
+    const expBuf = Buffer.from(expHex, 'hex');
+
+    function derLength(len) {
+        if (len < 128) return Buffer.from([len]);
+        const bytes = [];
+        let l = len;
+        while (l > 0) { bytes.unshift(l & 0xff); l >>= 8; }
+        return Buffer.from([0x80 | bytes.length, ...bytes]);
+    }
+    function derTag(tag, content) {
+        return Buffer.concat([Buffer.from([tag]), derLength(content.length), content]);
+    }
+    function derInteger(buf) {
+        if (buf.length > 0 && (buf[0] & 0x80)) {
+            buf = Buffer.concat([Buffer.from([0x00]), buf]);
+        }
+        return derTag(0x02, buf);
+    }
+    function derSequence(items) {
+        return derTag(0x30, Buffer.concat(items));
+    }
+    function derBitString(content) {
+        return derTag(0x03, Buffer.concat([Buffer.from([0x00]), content]));
+    }
+    function derOid(oidBytes) {
+        return derTag(0x06, oidBytes);
+    }
+    function derNull() {
+        return Buffer.from([0x05, 0x00]);
+    }
+
+    // RSAPublicKey ::= SEQUENCE { modulus INTEGER, publicExponent INTEGER }
+    const rsaPublicKey = derSequence([derInteger(modBuf), derInteger(expBuf)]);
+
+    // AlgorithmIdentifier ::= SEQUENCE { algorithm OID, parameters NULL }
+    // OID 1.2.840.113549.1.1.1 (rsaEncryption)
+    const algorithmIdentifier = derSequence([
+        derOid(Buffer.from([0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01])),
+        derNull()
+    ]);
+
+    // SubjectPublicKeyInfo ::= SEQUENCE { algorithm AlgorithmIdentifier, subjectPublicKey BIT STRING }
+    const subjectPublicKeyInfo = derSequence([
+        algorithmIdentifier,
+        derBitString(rsaPublicKey)
+    ]);
+
+    const b64 = subjectPublicKeyInfo.toString('base64');
+    const lines = b64.match(/.{1,64}/g).join('\n');
+    return `-----BEGIN PUBLIC KEY-----\n${lines}\n-----END PUBLIC KEY-----`;
+}
+
 async function checkSteamCredentials(username, password, captchaGid = '-1', captchaText = '') {
     const headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -168,6 +225,7 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
         'X-Requested-With': 'XMLHttpRequest'
     };
 
+    // Шаг 1: Получение RSA-ключа
     let rsaData;
     try {
         const rsaResponse = await axios.get('https://steamcommunity.com/login/getrsakey', {
@@ -175,14 +233,17 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
         });
         rsaData = rsaResponse.data;
     } catch (error) {
-        return { status: 'error', message: `Ошибка сети: ${error.message}` };
+        return { status: 'error', message: `Ошибка сети при получении ключа: ${error.message}` };
     }
 
-    if (!rsaData.success) return { status: 'error', message: 'аккаунт не работает (неверный логин)' };
+    if (!rsaData.success) {
+        return { status: 'error', message: 'аккаунт не работает (неверный логин)' };
+    }
 
+    // Шаг 2: Шифрование пароля
     let encryptedPasswordB64;
     try {
-        const publicKeyPem = `-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA${rsaData.publickey_mod}\n-----END PUBLIC KEY-----`;
+        const publicKeyPem = buildRSAPublicKeyPEM(rsaData.publickey_mod, rsaData.publickey_exp);
         const encrypted = crypto.publicEncrypt(
             { key: publicKeyPem, padding: crypto.constants.RSA_PKCS1_PADDING },
             Buffer.from(password, 'utf-8')
@@ -192,40 +253,67 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
         return { status: 'error', message: `Ошибка шифрования: ${error.message}` };
     }
 
+    // Шаг 3: Отправка авторизации
     const payload = new URLSearchParams({
-        username, password: encryptedPasswordB64, twofactorcode: '', emailauth: '',
-        loginfriendlyname: '', captchagid: captchaGid, captcha_text: captchaText,
-        emailsteamid: '', rsatimestamp: rsaData.timestamp, remember_login: 'false',
+        username,
+        password: encryptedPasswordB64,
+        twofactorcode: '',
+        emailauth: '',
+        loginfriendlyname: '',
+        captchagid: captchaGid,
+        captcha_text: captchaText,
+        emailsteamid: '',
+        rsatimestamp: rsaData.timestamp,
+        remember_login: 'false',
         donotcache: Date.now().toString()
     });
 
     let loginData;
     try {
         const loginResponse = await axios.post('https://steamcommunity.com/login/dologin/', payload.toString(), {
-            headers: { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 10000
+            headers: { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' },
+            timeout: 10000
         });
         loginData = loginResponse.data;
     } catch (error) {
         return { status: 'error', message: `Ошибка входа: ${error.message}` };
     }
 
-    if (loginData.success) return { status: 'success', message: 'аккаунт работает (верный пароль)' };
-    if (loginData.captcha_needed) {
-        return { status: 'captcha', message: 'Требуется капча', captcha_gid: loginData.captcha_gid || '-1', captcha_url: `https://steamcommunity.com/login/rendercaptcha/?gid=${loginData.captcha_gid}` };
+    // Шаг 4: Парсинг ответа
+    if (loginData.success) {
+        return { status: 'success', message: 'аккаунт работает (верный пароль)' };
     }
-    if (loginData.requires_twofactor) return { status: 'error', message: 'аккаунт не работает (стоит стим гвард)' };
-    if (loginData.emailauth_needed) return { status: 'error', message: 'аккаунт не работает (требуется код из почты)' };
-    
+
+    if (loginData.captcha_needed) {
+        const newCaptchaGid = loginData.captcha_gid || '-1';
+        return {
+            status: 'captcha',
+            message: 'Требуется капча',
+            captcha_gid: newCaptchaGid,
+            captcha_url: `https://steamcommunity.com/login/rendercaptcha/?gid=${newCaptchaGid}`
+        };
+    }
+
+    if (loginData.requires_twofactor) {
+        return { status: 'error', message: 'аккаунт не работает (стоит стим гвард)' };
+    }
+
+    if (loginData.emailauth_needed) {
+        return { status: 'error', message: 'аккаунт не работает (требуется код из почты)' };
+    }
+
     const msg = loginData.message || 'Неверный логин или пароль';
+    if (msg.toLowerCase().includes('incorrect') || msg.toLowerCase().includes('wrong')) {
+        return { status: 'error', message: 'аккаунт не работает (неверный пароль)' };
+    }
+
     return { status: 'error', message: `аккаунт не работает (${msg})` };
 }
 
-// Маршрут для главной страницы
 app.get('/', (req, res) => {
     res.send(HTML_TEMPLATE);
 });
 
-// Маршрут для проверки
 app.post('/check', async (req, res) => {
     const { username, password, captcha_gid, captcha_text } = req.body;
 
@@ -233,11 +321,15 @@ app.post('/check', async (req, res) => {
         return res.json({ status: 'error', message: 'Введите логин и пароль' });
     }
 
-    const result = await checkSteamCredentials(username.trim(), password.trim(), captcha_gid || '-1', captcha_text || '');
+    const result = await checkSteamCredentials(
+        username.trim(),
+        password.trim(),
+        captcha_gid || '-1',
+        captcha_text || ''
+    );
     res.json(result);
 });
 
-// Запуск сервера с правильным портом
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Сервер запущен на порту ${PORT}`);
 });
