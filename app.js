@@ -15,7 +15,6 @@ setInterval(() => {
     }
 }, 10000);
 
-// Извлеченные данные из твоего файла
 const sharedAccounts = [
     { game: "BeamNG.drive", login: "beamngdrive123steam1", password: "Kte!22ijaAII12" },
     { game: "Kingdom Come Deliverance 2", login: "mosgq70379", password: "oeldf55726" },
@@ -197,7 +196,7 @@ const HTML_TEMPLATE = `
             </div>
 
             <button class="close-modal" onclick="closeModal()">Закрыть</button>
-        </div</div>
+        </div>
     </div>
 
     <script>
@@ -425,7 +424,7 @@ app.get('/', (req, res) => res.send(HTML_TEMPLATE));
 
 app.get('/api/captcha/:gid', async (req, res) => {
     try {
-        const response = await axios.get(\`https://steamcommunity.com/login/rendercaptcha/?gid=\${req.params.gid}\`, {
+        const response = await axios.get(`https://steamcommunity.com/login/rendercaptcha/?gid=${req.params.gid}`, {
             responseType: 'arraybuffer',
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
             timeout: 10000
@@ -451,4 +450,4 @@ app.post('/check', async (req, res) => {
     res.json(result);
 });
 
-app.listen(PORT, '0.0.0.0', () => console.log(\`Сервер запущен на порту \${PORT}\`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Сервер запущен на порту ${PORT}`));
