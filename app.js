@@ -8,7 +8,6 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 
 const activeSessions = new Map();
-
 setInterval(() => {
     const now = Date.now();
     for (const [id, lastSeen] of activeSessions.entries()) {
@@ -16,29 +15,38 @@ setInterval(() => {
     }
 }, 10000);
 
-// База аккаунтов Steam (458 аккаунтов)
-const steamAccounts = [
-  {"login":"beamngdrive123steam1","password":"Kte!22ijaAII12","game":"BeamNG Drive"},
-  {"login":"uncharted_st","password":"UNCHARTED@8804","game":"UNCHARTED: Legacy of Thieves Collection"},
-  {"login":"nmsukt191","password":"batzaza191","game":"Steam Account #3"},
-  {"login":"gfk66337","password":"Acp234213","game":"Black Myth Wukong"},
-  {"login":"0855j9","password":"zZ10301030","game":"Steam Account #5"},
-  {"login":"groggymovement4","password":"DCN_LliOQhv","game":"Marvel's Spider Man 2"},
-  {"login":"ynysa422","password":"@Gamerspace123","game":"Red Dead Redemption 2"},
-  {"login":"rnmiike","password":"THEGODMIKE1","game":"Steam Account #8"},
-  {"login":"mklvn2y9","password":"zhizhure1221","game":"Marvel's Spider Man Remastered"},
-  {"login":"nicasacracacenri","password":"EBA9Y59KGCTB","game":"Hogwarts Legacy"},
-  {"login":"jocuriargenrinia","password":"70Games.net92","game":"Resident Evil 7 Biohazard"},
-  {"login":"wqm322495","password":"ac7QPfa3","game":"Grand Theft Auto 4"},
-  {"login":"vonterr","password":"889162","game":"Horizon Forbidden West Complete Edition"},
-  {"login":"orderlyinoculat","password":"axQUk8etMajK","game":"Cyberpunk 2077"},
-  {"login":"earthlnwza5566","password":"2G6TEM5ZAZC6","game":"Steam Account #15"},
-  {"login":"nfpprsq3h","password":"f1qslg5kp","game":"Euro Truck Simulator 2"},
-  {"login":"wf6ju3bf5wc3","password":"qKnh6N9SLiMxyvXVX36d","game":"Atomic Heart"},
-  {"login":"bej01201","password":"Bejdw11201","game":"Forza Horizon 5"},
-  {"login":"dimkoxd","password":"2G6TEM5ZAZC6","game":"Steam Account #19"},
-  {"login":"steam123z17","password":"ZXCVBNMQQ","game":"Steam Account #20"},
-  {"login":"twistnewold","password":"5sMgwST4L5j","game":"Lego Marvel Super Heroes"}
+// Извлеченные данные из твоего файла
+const sharedAccounts = [
+    { game: "BeamNG.drive", login: "beamngdrive123steam1", password: "Kte!22ijaAII12" },
+    { game: "Kingdom Come Deliverance 2", login: "mosgq70379", password: "oeldf55726" },
+    { game: "UNCHARTED: Legacy of Thieves", login: "uncharted_st", password: "UNCHARTED@8804" },
+    { game: "Forza Horizon 4", login: "nmsukt191", password: "batzaza191" },
+    { game: "Black Myth Wukong", login: "gfk66337", password: "Acp234213" },
+    { game: "Grand Theft Auto 5", login: "0855j9", password: "zZ10301030" },
+    { game: "Marvel's Spider Man 2", login: "groggymovement4", password: "DCN_LliOQhv" },
+    { game: "Red Dead Redemption 2", login: "ynysa422", password: "@Gamerspace123" },
+    { game: "NBA 2K20", login: "rnmiike", password: "THEGODMIKE1" },
+    { game: "Marvel's Spider Man Remastered", login: "mklvn2y9", password: "zhizhure1221" },
+    { game: "Hogwarts Legacy", login: "nicasacracacenri", password: "EBA9Y59KGCTB" },
+    { game: "Resident Evil 7 Biohazard", login: "jocuriargenrinia", password: "70Games.net92" },
+    { game: "Grand Theft Auto 4", login: "wqm322495", password: "ac7QPfa3" },
+    { game: "Horizon Forbidden West", login: "vonterr", password: "889162" },
+    { game: "Cyberpunk 2077", login: "orderlyinoculat", password: "axQUk8etMajK" },
+    { game: "Dying Light 2 Stay Human", login: "earthlnwza5566", password: "2G6TEM5ZAZC6" },
+    { game: "Euro Truck Simulator 2", login: "nfpprsq3h", password: "f1qslg5kp" },
+    { game: "Atomic Heart", login: "wf6ju3bf5wc3", password: "qKnh6N9SLiMxyvXVX36d" },
+    { game: "Forza Horizon 5", login: "bej01201", password: "Bejdw11201" },
+    { game: "Call Of Duty Modern Warfare 2", login: "dimkoxd", password: "2G6TEM5ZAZC6" },
+    { game: "Mortal Kombat 11", login: "steam123z17", password: "ZXCVBNMQQ" },
+    { game: "Mortal Kombat 1", login: "Mortalk1pehkflt01", password: "TGVBFRETt01" },
+    { game: "Farming Simulator 25", login: "neylavewe1985", password: "wFbmEcKQ" },
+    { game: "FIFA 22", login: "xxyenlover", password: "34cv56BN" },
+    { game: "Terraria", login: "quincypugy", password: "0Heh%v4SSG" },
+    { game: "Hearts Of Iron 4", login: "meteprotr", password: "3D88ASX2AMCG" },
+    { game: "Ведьмак 3: Дикая Охота", login: "thnavud1", password: "0641769856Za" },
+    { game: "Call Of Duty Modern Warfare 2019", login: "soham123419", password: "Funpay-0nibist" },
+    { game: "The Forest", login: "hhied98481", password: "Deaiwoq217" },
+    { game: "Detroit: Become Human", login: "Detroit_st", password: "DETROIT@7401" }
 ];
 
 const HTML_TEMPLATE = `
@@ -67,396 +75,156 @@ const HTML_TEMPLATE = `
             background: var(--card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
             padding: 2.5rem; border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
-            width: 100%; max-width: 500px; text-align: center; position: relative;
+            width: 100%; max-width: 420px; text-align: center; position: relative;
             animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .lang-switcher {
-            position: absolute; top: 15px; right: 15px; display: flex; gap: 8px;
-            background: rgba(15, 16, 20, 0.6); padding: 4px; border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .lang-opt {
-            font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer;
-            padding: 4px 8px; border-radius: 6px; transition: all 0.2s ease; user-select: none;
-        }
-        .lang-opt.active { background: var(--accent); color: #0a0b10; }
-        .lang-opt:hover:not(.active) { color: var(--text); }
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; background: rgba(15, 16, 20, 0.6); padding: 4px; border-radius: 12px; }
+        .nav-tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-muted); transition: 0.2s; font-size: 0.9rem; }
+        .nav-tab.active { background: var(--accent); color: #0a0b10; }
         
-        .tabs {
-            display: flex; gap: 10px; margin-bottom: 1.5rem; background: rgba(15, 16, 20, 0.6);
-            padding: 4px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .tab {
-            flex: 1; padding: 12px; border-radius: 8px; cursor: pointer;
-            font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease;
-            color: var(--text-muted);
-        }
-        .tab.active { background: var(--accent); color: #0a0b10; }
-        .tab:hover:not(.active) { color: var(--text); }
-        
-        .section { display: none; }
-        .section.active { display: block; }
-        
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s ease; }
+
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         h2 { margin: 0; color: var(--accent); text-transform: uppercase; font-size: 1.1rem; letter-spacing: 2px; font-weight: 700; }
-        .online-badge {
-            display: flex; align-items: center; gap: 6px; background: rgba(0, 255, 136, 0.1);
-            color: var(--ok); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
-            border: 1px solid rgba(0, 255, 136, 0.2);
-        }
+        .online-badge { display: flex; align-items: center; gap: 6px; background: rgba(0, 255, 136, 0.1); color: var(--ok); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(0, 255, 136, 0.2); }
         .online-dot { width: 8px; height: 8px; background: var(--ok); border-radius: 50%; animation: pulse 2s infinite; }
+        
         .input-group { position: relative; margin-bottom: 1.2rem; }
-        input {
-            width: 100%; padding: 14px 16px; background: rgba(15, 16, 20, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; color: white;
-            font-size: 1rem; outline: none; transition: all 0.3s ease;
-        }
+        input { width: 100%; padding: 14px 16px; background: rgba(15, 16, 20, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; color: white; font-size: 1rem; outline: none; transition: all 0.3s ease; }
         input::placeholder { color: var(--text-muted); }
         input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); background: rgba(15, 16, 20, 0.9); }
-        button {
-            width: 100%; padding: 14px; margin-top: 0.5rem;
-            background: linear-gradient(135deg, var(--accent) 0%, #4a9fd4 100%);
-            color: #0a0b10; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700;
-            cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(102, 192, 244, 0.2);
-        }
-        button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 192, 244, 0.4); }
-        button:active:not(:disabled) { transform: translateY(0); }
-        button:disabled { background: #2a2e38; color: #666; cursor: not-allowed; box-shadow: none; }
-        #result {
-            margin-top: 1.5rem; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 1rem;
-            display: none; animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); text-transform: uppercase; letter-spacing: 1px;
-        }
+        
+        button.action-btn { width: 100%; padding: 14px; margin-top: 0.5rem; background: linear-gradient(135deg, var(--accent) 0%, #4a9fd4 100%); color: #0a0b10; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(102, 192, 244, 0.2); }
+        button.action-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 192, 244, 0.4); }
+        button.action-btn:active:not(:disabled) { transform: translateY(0); }
+        button.action-btn:disabled { background: #2a2e38; color: #666; cursor: not-allowed; box-shadow: none; }
+        
+        #result { margin-top: 1.5rem; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 1rem; display: none; animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); text-transform: uppercase; letter-spacing: 1px; }
         .success { background: rgba(0, 255, 136, 0.1); color: var(--ok); border: 1px solid rgba(0, 255, 136, 0.3); }
         .error { background: rgba(255, 51, 85, 0.1); color: var(--err); border: 1px solid rgba(255, 51, 85, 0.3); }
         .captcha { background: rgba(255, 170, 0, 0.1); color: var(--warn); border: 1px solid rgba(255, 170, 0, 0.3); text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 0.95rem; }
-        #captchaSection {
-            display: none; margin-top: 1.5rem; padding: 1.2rem; background: rgba(15, 16, 20, 0.6);
-            border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); animation: slideDown 0.4s ease;
-        }
+        
+        #captchaSection { display: none; margin-top: 1.5rem; padding: 1.2rem; background: rgba(15, 16, 20, 0.6); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); animation: slideDown 0.4s ease; }
         #captchaSection p { margin: 0 0 10px 0; color: var(--warn); font-size: 0.9rem; font-weight: 600; }
         #captchaImage { max-width: 100%; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1); background: #fff; }
+        
+        .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 1rem; max-height: 400px; overflow-y: auto; padding-right: 4px; }
+        .accounts-grid::-webkit-scrollbar { width: 6px; }
+        .accounts-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        .account-card { background: rgba(15, 16, 20, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 16px 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .account-card:hover { border-color: var(--accent); transform: translateY(-2px); background: rgba(102, 192, 244, 0.05); }
+        .account-card h3 { font-size: 0.9rem; margin: 0; color: var(--text); font-weight: 600; line-height: 1.3; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(6px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: var(--card); padding: 2rem; border-radius: 16px; width: 100%; max-width: 380px; border: 1px solid rgba(255,255,255,0.1); animation: popIn 0.3s ease; text-align: left; }
+        .modal-title { text-align: center; color: var(--accent); font-size: 1.2rem; font-weight: 700; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
+        .copy-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+        .copy-row label { width: 70px; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+        .copy-row input { flex: 1; margin: 0; font-family: monospace; font-size: 0.9rem; padding: 10px 12px; }
+        .copy-btn { width: auto; padding: 10px 16px; margin: 0; background: rgba(255,255,255,0.1); color: var(--text); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+        .copy-btn:hover { background: var(--accent); color: #0a0b10; border-color: var(--accent); }
+        .close-modal { width: 100%; padding: 12px; margin-top: 1rem; background: rgba(255, 51, 85, 0.1); color: var(--err); border: 1px solid rgba(255, 51, 85, 0.3); border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .close-modal:hover { background: rgba(255, 51, 85, 0.2); }
+
         .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); margin: 2rem 0 1.5rem 0; }
-        .tg-button {
-            display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px;
-            background: linear-gradient(135deg, var(--tg) 0%, #229ED9 100%); color: white; text-decoration: none;
-            border-radius: 10px; font-weight: 700; font-size: 1rem; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(42, 171, 238, 0.2);
-        }
+        .tg-button { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px; background: linear-gradient(135deg, var(--tg) 0%, #229ED9 100%); color: white; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 1rem; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(42, 171, 238, 0.2); }
         .tg-button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(42, 171, 238, 0.4); }
         .tg-button svg { width: 20px; height: 20px; fill: currentColor; }
-        
-        /* Accounts Grid */
-        .accounts-search {
-            margin-bottom: 1rem;
-        }
-        .accounts-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            background: rgba(15, 16, 20, 0.4);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .account-card {
-            background: rgba(27, 30, 38, 0.8);
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            text-align: left;
-        }
-        .account-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent);
-            box-shadow: 0 4px 12px rgba(102, 192, 244, 0.2);
-        }
-        .account-card-game {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .account-card-count {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-        
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: var(--card);
-            backdrop-filter: blur(16px);
-            padding: 2rem;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            animation: popIn 0.3s ease;
-        }
-        .modal-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-        .modal-field {
-            margin-bottom: 1rem;
-        }
-        .modal-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .modal-value {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .modal-input {
-            flex: 1;
-            padding: 12px;
-            background: rgba(15, 16, 20, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: var(--text);
-            font-family: monospace;
-            font-size: 0.9rem;
-        }
-        .copy-btn {
-            padding: 12px 16px;
-            background: var(--accent);
-            color: #0a0b10;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: all 0.2s ease;
-            margin-top: 0;
-            width: auto;
-        }
-        .copy-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 192, 244, 0.3);
-        }
-        .copy-btn.copied {
-            background: var(--ok);
-        }
-        .modal-close {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255, 51, 85, 0.2);
-            color: var(--err);
-            border: 1px solid rgba(255, 51, 85, 0.3);
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-top: 1rem;
-            transition: all 0.2s ease;
-        }
-        .modal-close:hover {
-            background: rgba(255, 51, 85, 0.3);
-        }
         
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(0, 255, 136, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); } }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="lang-switcher">
-            <span class="lang-opt" data-lang="ru">RUS</span>
-            <span class="lang-opt" data-lang="en">EN</span>
+        <div class="nav-tabs">
+            <div class="nav-tab active" id="checkerTab" onclick="switchTab('checker')">Проверка</div>
+            <div class="nav-tab" id="accountsTab" onclick="switchTab('accounts')">Общие аккаунты</div>
         </div>
-        
-        <div class="tabs">
-            <div class="tab active" data-tab="checker">Checker</div>
-            <div class="tab" data-tab="accounts">Accounts</div>
-        </div>
-        
-        <!-- Checker Section -->
-        <div class="section active" id="checkerSection">
+
+        <div id="checkerView" class="view-section active">
             <div class="header">
-                <h2 id="checkerTitle">Проверка аккаунта</h2>
+                <h2>Проверка аккаунта</h2>
                 <div class="online-badge"><div class="online-dot"></div><span id="onlineCount">0</span></div>
             </div>
             <div class="input-group"><input type="text" id="username" placeholder="Логин Steam" autocomplete="off"></div>
             <div class="input-group"><input type="password" id="password" placeholder="Пароль"></div>
-            <button id="checkBtn" onclick="checkAccount()">Проверить</button>
+            <button id="checkBtn" class="action-btn" onclick="checkAccount()">Проверить</button>
             
             <div id="captchaSection">
-                <p id="captchaPrompt">Введите код с картинки:</p>
+                <p>Введите код с картинки:</p>
                 <img id="captchaImage" src="" alt="CAPTCHA">
                 <input type="text" id="captchaText" placeholder="Введите код" style="margin-top: 0;">
-                <button onclick="submitWithCaptcha()" style="margin-top: 10px; background: linear-gradient(135deg, var(--warn) 0%, #e69500 100%);" id="captchaBtn">Отправить с капчей</button>
+                <button class="action-btn" onclick="submitWithCaptcha()" style="margin-top: 10px; background: linear-gradient(135deg, var(--warn) 0%, #e69500 100%);">Отправить с капчей</button>
             </div>
             <div id="result"></div>
         </div>
-        
-        <!-- Accounts Section -->
-        <div class="section" id="accountsSection">
+
+        <div id="accountsView" class="view-section">
             <div class="header">
-                <h2 id="accountsTitle">Общие аккаунты</h2>
-                <div class="online-badge"><div class="online-dot"></div><span id="accountsCount">0</span></div>
+                <h2>Общие аккаунты</h2>
             </div>
-            <div class="accounts-search">
-                <input type="text" id="accountsSearch" placeholder="Поиск игры..." oninput="filterAccounts()">
-            </div>
-            <div class="accounts-grid" id="accountsGrid">
-                <!-- Cards will be inserted here -->
-            </div>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Нажми на игру, чтобы получить данные для входа</p>
+            <div class="accounts-grid" id="accountsGrid"></div>
         </div>
-        
+
         <div class="divider"></div>
-        <a href="https://t.me/MirArenDaff" target="_blank" class="tg-button" id="tgButton">
+        <a href="https://t.me/MirArenDaff" target="_blank" class="tg-button">
             <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.119.098.152.228.166.319.016.101.017.204.011.285z"/></svg>
-            <span id="tgButtonText">Подпишись (:</span>
+            Подпишись (:
         </a>
     </div>
-    
-    <!-- Modal -->
-    <div class="modal" id="accountModal">
+
+    <div class="modal-overlay" id="accountModal" onclick="if(event.target === this) closeModal()">
         <div class="modal-content">
-            <div class="modal-title" id="modalTitle">Account Details</div>
-            <div class="modal-field">
-                <div class="modal-label">Login</div>
-                <div class="modal-value">
-                    <input type="text" class="modal-input" id="modalLogin" readonly>
-                    <button class="copy-btn" onclick="copyToClipboard('modalLogin', this)">Copy</button>
-                </div>
+            <div class="modal-title" id="modalGameTitle">Game Name</div>
+            
+            <div class="copy-row">
+                <label>Логин:</label>
+                <input type="text" id="modalLogin" readonly>
+                <button class="copy-btn" id="copyLoginBtn" onclick="copyToClipboard('modalLogin', 'copyLoginBtn')">Копировать</button>
             </div>
-            <div class="modal-field">
-                <div class="modal-label">Password</div>
-                <div class="modal-value">
-                    <input type="password" class="modal-input" id="modalPassword" readonly>
-                    <button class="copy-btn" onclick="copyToClipboard('modalPassword', this)">Copy</button>
-                </div>
+            
+            <div class="copy-row">
+                <label>Пароль:</label>
+                <input type="text" id="modalPassword" readonly>
+                <button class="copy-btn" id="copyPasswordBtn" onclick="copyToClipboard('modalPassword', 'copyPasswordBtn')">Копировать</button>
             </div>
-            <button class="modal-close" onclick="closeModal()" id="modalCloseBtn">Close</button>
-        </div>
+
+            <button class="close-modal" onclick="closeModal()">Закрыть</button>
+        </div</div>
     </div>
 
     <script>
-        const translations = {
-            ru: {
-                checkerTitle: "Проверка аккаунта", phLogin: "Логин Steam", phPass: "Пароль", btnCheck: "Проверить",
-                captchaPrompt: "Введите код с картинки:", phCaptcha: "Введите код", btnCaptcha: "Отправить с капчей",
-                errEmpty: "Заполните все поля", errFail: "Аккаунт не работает", success: "Аккаунт работает",
-                reqCaptcha: "Требуется капча", badCaptcha: "Неверная капча, попробуйте снова", tgBtn: "Подпишись (:",
-                accountsTitle: "Общие аккаунты", phSearch: "Поиск игры...", modalClose: "Закрыть"
-            },
-            en: {
-                checkerTitle: "Account Check", phLogin: "Steam Login", phPass: "Password", btnCheck: "Check",
-                captchaPrompt: "Enter code from image:", phCaptcha: "Enter code", btnCaptcha: "Submit with captcha",
-                errEmpty: "Fill in all fields", errFail: "Account does not work", success: "Account works",
-                reqCaptcha: "Captcha required", badCaptcha: "Invalid captcha, try again", tgBtn: "Subscribe (:",
-                accountsTitle: "Shared Accounts", phSearch: "Search game...", modalClose: "Close"
-            }
-        };
-
-        let currentLang = localStorage.getItem('lang') || 'ru';
-        let allAccounts = [];
-
-        function applyLanguage(lang) {
-            currentLang = lang;
-            localStorage.setItem('lang', lang);
-            document.querySelectorAll('.lang-opt').forEach(el => el.classList.toggle('active', el.dataset.lang === lang));
-            const t = translations[lang];
-            document.getElementById('checkerTitle').textContent = t.checkerTitle;
-            document.getElementById('accountsTitle').textContent = t.accountsTitle;
-            document.getElementById('username').placeholder = t.phLogin;
-            document.getElementById('password').placeholder = t.phPass;
-            document.getElementById('checkBtn').textContent = t.btnCheck;
-            document.getElementById('captchaPrompt').textContent = t.captchaPrompt;
-            document.getElementById('captchaText').placeholder = t.phCaptcha;
-            document.getElementById('captchaBtn').textContent = t.btnCaptcha;
-            document.getElementById('accountsSearch').placeholder = t.phSearch;
-            document.getElementById('modalCloseBtn').textContent = t.modalClose;
-            document.getElementById('tgButtonText').textContent = t.tgBtn;
+        function switchTab(tab) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab + 'View').classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+            if (tab === 'accounts') renderAccounts();
         }
 
-        document.querySelectorAll('.lang-opt').forEach(el => el.addEventListener('click', () => applyLanguage(el.dataset.lang)));
-        applyLanguage(currentLang);
-
-        // Tabs
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                tab.classList.add('active');
-                document.getElementById(tab.dataset.tab + 'Section').classList.add('active');
-            });
-        });
-
-        // Load accounts
-        async function loadAccounts() {
-            try {
-                const response = await fetch('/api/accounts');
-                allAccounts = await response.json();
-                document.getElementById('accountsCount').textContent = allAccounts.length;
-                renderAccounts(allAccounts);
-            } catch (error) {
-                console.error('Error loading accounts:', error);
-            }
-        }
-
-        function renderAccounts(accounts) {
+        function renderAccounts() {
             const grid = document.getElementById('accountsGrid');
-            grid.innerHTML = '';
-            
-            // Group by game
-            const grouped = {};
-            accounts.forEach(acc => {
-                if (!grouped[acc.game]) grouped[acc.game] = [];
-                grouped[acc.game].push(acc);
-            });
-            
-            Object.keys(grouped).slice(0, 50).forEach(game => {
-                const card = document.createElement('div');
-                card.className = 'account-card';
-                card.innerHTML = \`
-                    <div class="account-card-game">\${game}</div>
-                    <div class="account-card-count">\${grouped[game].length} account(s)</div>
-                \`;
-                card.onclick = () => showAccountModal(grouped[game][0]);
-                grid.appendChild(card);
-            });
+            grid.innerHTML = sharedAccounts.map((acc, index) => \`
+                <div class="account-card" onclick="openAccountModal(\${index})">
+                    <h3>\${acc.game}</h3>
+                </div>
+            \`).join('');
         }
 
-        function filterAccounts() {
-            const query = document.getElementById('accountsSearch').value.toLowerCase();
-            const filtered = allAccounts.filter(acc => acc.game.toLowerCase().includes(query));
-            renderAccounts(filtered);
-        }
-
-        function showAccountModal(account) {
-            document.getElementById('modalTitle').textContent = account.game;
-            document.getElementById('modalLogin').value = account.login;
-            document.getElementById('modalPassword').value = account.password;
+        function openAccountModal(index) {
+            const acc = sharedAccounts[index];
+            document.getElementById('modalGameTitle').textContent = acc.game;
+            document.getElementById('modalLogin').value = acc.login;
+            document.getElementById('modalPassword').value = acc.password;
+            document.getElementById('copyLoginBtn').textContent = 'Копировать';
+            document.getElementById('copyPasswordBtn').textContent = 'Копировать';
             document.getElementById('accountModal').classList.add('active');
         }
 
@@ -464,23 +232,23 @@ const HTML_TEMPLATE = `
             document.getElementById('accountModal').classList.remove('active');
         }
 
-        function copyToClipboard(elementId, btn) {
-            const input = document.getElementById(elementId);
-            input.select();
-            document.execCommand('copy');
-            const originalText = btn.textContent;
-            btn.textContent = '✓';
-            btn.classList.add('copied');
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.classList.remove('copied');
-            }, 1500);
+        function copyToClipboard(elementId, btnId) {
+            const el = document.getElementById(elementId);
+            el.select();
+            el.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(el.value).then(() => {
+                const btn = document.getElementById(btnId);
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Скопировано';
+                btn.style.background = 'var(--ok)';
+                btn.style.color = '#0a0b10';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                    btn.style.color = '';
+                }, 1500);
+            });
         }
-
-        // Close modal on outside click
-        document.getElementById('accountModal').addEventListener('click', (e) => {
-            if (e.target.id === 'accountModal') closeModal();
-        });
 
         let currentCaptchaGid = '-1';
         let cooldownTimer = null;
@@ -501,18 +269,12 @@ const HTML_TEMPLATE = `
         function startCooldown() {
             const btn = document.getElementById('checkBtn');
             let remaining = COOLDOWN_SECONDS;
-            btn.disabled = true;
+            btn.disabled = true; btn.textContent = 'Подождите ' + remaining + 'с...';
             if (cooldownTimer) clearInterval(cooldownTimer);
             cooldownTimer = setInterval(() => {
                 remaining--;
-                if (remaining <= 0) { 
-                    clearInterval(cooldownTimer); 
-                    cooldownTimer = null; 
-                    btn.disabled = false; 
-                    btn.textContent = translations[currentLang].btnCheck; 
-                } else { 
-                    btn.textContent = (currentLang === 'ru' ? 'Подождите ' : 'Wait ') + remaining + 's...'; 
-                }
+                if (remaining <= 0) { clearInterval(cooldownTimer); cooldownTimer = null; btn.disabled = false; btn.textContent = 'Проверить'; }
+                else { btn.textContent = 'Подождите ' + remaining + 'с...'; }
             }, 1000);
         }
 
@@ -521,11 +283,10 @@ const HTML_TEMPLATE = `
             const p = document.getElementById('password').value;
             const btn = document.getElementById('checkBtn');
             const res = document.getElementById('result');
-            const t = translations[currentLang];
             
-            if (!u || !p) { res.className = 'error'; res.textContent = t.errEmpty; res.style.display = 'block'; return; }
+            if (!u || !p) { res.className = 'error'; res.textContent = 'Аккаунт не работает'; res.style.display = 'block'; return; }
             
-            btn.disabled = true; btn.textContent = t.btnCheck + '...'; res.style.display = 'none';
+            btn.disabled = true; btn.textContent = 'Проверка...'; res.style.display = 'none';
             document.getElementById('captchaSection').style.display = 'none';
             
             try {
@@ -538,14 +299,14 @@ const HTML_TEMPLATE = `
                     currentCaptchaGid = data.captcha_gid;
                     document.getElementById('captchaImage').src = '/api/captcha/' + currentCaptchaGid;
                     document.getElementById('captchaSection').style.display = 'block';
-                    res.className = 'captcha'; res.textContent = t.reqCaptcha; res.style.display = 'block';
+                    res.className = 'captcha'; res.textContent = 'Требуется капча'; res.style.display = 'block';
                 } else if (data.status === 'success') {
-                    res.className = 'success'; res.textContent = t.success; res.style.display = 'block';
+                    res.className = 'success'; res.textContent = 'Аккаунт работает'; res.style.display = 'block';
                 } else {
-                    res.className = 'error'; res.textContent = t.errFail; res.style.display = 'block';
+                    res.className = 'error'; res.textContent = 'Аккаунт не работает'; res.style.display = 'block';
                 }
             } catch (error) {
-                res.className = 'error'; res.textContent = t.errFail; res.style.display = 'block';
+                res.className = 'error'; res.textContent = 'Аккаунт не работает'; res.style.display = 'block';
             } finally { startCooldown(); }
         }
 
@@ -555,11 +316,10 @@ const HTML_TEMPLATE = `
             const captchaText = document.getElementById('captchaText').value;
             const btn = document.getElementById('checkBtn');
             const res = document.getElementById('result');
-            const t = translations[currentLang];
             
-            if (!captchaText) { res.className = 'error'; res.textContent = t.errEmpty; res.style.display = 'block'; return; }
+            if (!captchaText) { res.className = 'error'; res.textContent = 'Аккаунт не работает'; res.style.display = 'block'; return; }
             
-            btn.disabled = true; btn.textContent = t.btnCheck + '...'; res.style.display = 'none';
+            btn.disabled = true; btn.textContent = 'Проверка...'; res.style.display = 'none';
             
             try {
                 const response = await fetch('/check', {
@@ -570,21 +330,18 @@ const HTML_TEMPLATE = `
                 if (data.status === 'captcha') {
                     document.getElementById('captchaImage').src = '/api/captcha/' + data.captcha_gid + '?t=' + Date.now();
                     document.getElementById('captchaText').value = '';
-                    res.className = 'captcha'; res.textContent = t.badCaptcha; res.style.display = 'block';
+                    res.className = 'captcha'; res.textContent = 'Неверная капча, попробуйте снова'; res.style.display = 'block';
                 } else if (data.status === 'success') {
                     document.getElementById('captchaSection').style.display = 'none';
-                    res.className = 'success'; res.textContent = t.success; res.style.display = 'block';
+                    res.className = 'success'; res.textContent = 'Аккаунт работает'; res.style.display = 'block';
                 } else {
                     document.getElementById('captchaSection').style.display = 'none';
-                    res.className = 'error'; res.textContent = t.errFail; res.style.display = 'block';
+                    res.className = 'error'; res.textContent = 'Аккаунт не работает'; res.style.display = 'block';
                 }
             } catch (error) {
-                res.className = 'error'; res.textContent = t.errFail; res.style.display = 'block';
+                res.className = 'error'; res.textContent = 'Аккаунт не работает'; res.style.display = 'block';
             } finally { startCooldown(); }
         }
-
-        // Load accounts on page load
-        loadAccounts();
     </script>
 </body>
 </html>
@@ -613,7 +370,7 @@ function buildRSAPublicKeyPEM(modHex, expHex) {
     const algorithmIdentifier = derSequence([derOid(Buffer.from([0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01])), derNull()]);
     const subjectPublicKeyInfo = derSequence([algorithmIdentifier, derBitString(rsaPublicKey)]);
     const b64 = subjectPublicKeyInfo.toString('base64');
-    return \`-----BEGIN PUBLIC KEY-----\n\${b64.match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----\`;
+    return `-----BEGIN PUBLIC KEY-----\n${b64.match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----`;
 }
 
 async function checkSteamCredentials(username, password, captchaGid = '-1', captchaText = '') {
@@ -665,11 +422,6 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
 }
 
 app.get('/', (req, res) => res.send(HTML_TEMPLATE));
-
-// API для получения списка аккаунтов
-app.get('/api/accounts', (req, res) => {
-    res.json(steamAccounts);
-});
 
 app.get('/api/captcha/:gid', async (req, res) => {
     try {
