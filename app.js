@@ -1,4 +1,4 @@
-const express = require('express');
+ const express = require('express');
 const axios = require('axios');
 const crypto = require('crypto');
 
@@ -6,19 +6,6 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
-
-// Хранилище активных сессий для счетчика онлайна
-const activeSessions = new Map();
-
-// Очистка неактивных сессий каждые 10 секунд (таймаут 30 секунд)
-setInterval(() => {
-    const now = Date.now();
-    for (const [id, lastSeen] of activeSessions.entries()) {
-        if (now - lastSeen > 30000) {
-            activeSessions.delete(id);
-        }
-    }
-}, 10000);
 
 const HTML_TEMPLATE = `
 <!DOCTYPE html>
@@ -67,38 +54,13 @@ const HTML_TEMPLATE = `
             text-align: center;
             animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
         h2 {
-            margin: 0;
+            margin: 0 0 1.5rem 0;
             color: var(--accent);
             text-transform: uppercase;
             font-size: 1.1rem;
             letter-spacing: 2px;
             font-weight: 700;
-        }
-        .online-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(0, 255, 136, 0.1);
-            color: var(--ok);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            border: 1px solid rgba(0, 255, 136, 0.2);
-        }
-        .online-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--ok);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
         }
         .input-group { position: relative; margin-bottom: 1.2rem; }
         input {
@@ -147,16 +109,14 @@ const HTML_TEMPLATE = `
             margin-top: 1.5rem;
             padding: 14px;
             border-radius: 10px;
-            font-weight: 700;
-            font-size: 1rem;
+            font-weight: 600;
+            font-size: 0.95rem;
             display: none;
             animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
         .success { background: rgba(0, 255, 136, 0.1); color: var(--ok); border: 1px solid rgba(0, 255, 136, 0.3); }
         .error { background: rgba(255, 51, 85, 0.1); color: var(--err); border: 1px solid rgba(255, 51, 85, 0.3); }
-        .captcha { background: rgba(255, 170, 0, 0.1); color: var(--warn); border: 1px solid rgba(255, 170, 0, 0.3); text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 0.95rem; }
+        .captcha { background: rgba(255, 170, 0, 0.1); color: var(--warn); border: 1px solid rgba(255, 170, 0, 0.3); }
         
         #captchaSection {
             display: none;
@@ -201,18 +161,11 @@ const HTML_TEMPLATE = `
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(0, 255, 136, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); } }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h2>Проверка аккаунта</h2>
-            <div class="online-badge">
-                <div class="online-dot"></div>
-                <span id="onlineCount">0</span>
-            </div>
-        </div>
+        <h2>Проверка аккаунта</h2>
         
         <div class="input-group">
             <input type="text" id="username" placeholder="Логин Steam" autocomplete="off">
@@ -245,38 +198,6 @@ const HTML_TEMPLATE = `
         let cooldownTimer = null;
         const COOLDOWN_SECONDS = 15;
 
-        // Логика счетчика онлайна
-        let sessionId = sessionStorage.getItem('sessionId');
-        if (!sessionId) {
-            sessionId = Math.random().toString(36).substring(2, 15);
-            sessionStorage.setItem('sessionId', sessionId);
-        }
-
-        function pingServer() {
-            fetch('/ping', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sessionId })
-            }).catch(() => {});
-        }
-        
-        // Пинг каждые 10 секунд
-        setInterval(pingServer, 10000);
-        pingServer();
-
-        function updateOnlineCount() {
-            fetch('/stats')
-                .then(r => r.json())
-                .then(data => {
-                    document.getElementById('onlineCount').textContent = data.online;
-                })
-                .catch(() => {});
-        }
-        
-        // Обновление счетчика каждые 5 секунд
-        setInterval(updateOnlineCount, 5000);
-        updateOnlineCount();
-
         function startCooldown() {
             const btn = document.getElementById('checkBtn');
             let remaining = COOLDOWN_SECONDS;
@@ -306,7 +227,7 @@ const HTML_TEMPLATE = `
             
             if (!u || !p) {
                 res.className = 'error';
-                res.textContent = 'Аккаунт не работает';
+                res.textContent = 'Заполните все поля';
                 res.style.display = 'block';
                 return;
             }
@@ -329,20 +250,16 @@ const HTML_TEMPLATE = `
                     document.getElementById('captchaImage').src = data.captcha_url;
                     document.getElementById('captchaSection').style.display = 'block';
                     res.className = 'captcha';
-                    res.textContent = 'Требуется капча';
-                    res.style.display = 'block';
-                } else if (data.status === 'success') {
-                    res.className = 'success';
-                    res.textContent = 'Аккаунт работает';
+                    res.textContent = data.message;
                     res.style.display = 'block';
                 } else {
-                    res.className = 'error';
-                    res.textContent = 'Аккаунт не работает';
+                    res.className = data.status === 'success' ? 'success' : 'error';
+                    res.textContent = data.message;
                     res.style.display = 'block';
                 }
             } catch (error) {
                 res.className = 'error';
-                res.textContent = 'Аккаунт не работает';
+                res.textContent = 'Ошибка соединения с сервером';
                 res.style.display = 'block';
             } finally {
                 startCooldown();
@@ -358,7 +275,7 @@ const HTML_TEMPLATE = `
             
             if (!captchaText) {
                 res.className = 'error';
-                res.textContent = 'Аккаунт не работает';
+                res.textContent = 'Введите код капчи';
                 res.style.display = 'block';
                 return;
             }
@@ -386,20 +303,15 @@ const HTML_TEMPLATE = `
                     res.className = 'captcha';
                     res.textContent = 'Неверная капча, попробуйте снова';
                     res.style.display = 'block';
-                } else if (data.status === 'success') {
-                    document.getElementById('captchaSection').style.display = 'none';
-                    res.className = 'success';
-                    res.textContent = 'Аккаунт работает';
-                    res.style.display = 'block';
                 } else {
                     document.getElementById('captchaSection').style.display = 'none';
-                    res.className = 'error';
-                    res.textContent = 'Аккаунт не работает';
+                    res.className = data.status === 'success' ? 'success' : 'error';
+                    res.textContent = data.message;
                     res.style.display = 'block';
                 }
             } catch (error) {
                 res.className = 'error';
-                res.textContent = 'Аккаунт не работает';
+                res.textContent = 'Ошибка соединения с сервером';
                 res.style.display = 'block';
             } finally {
                 startCooldown();
@@ -474,11 +386,11 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
         });
         rsaData = rsaResponse.data;
     } catch (error) {
-        return { status: 'error', message: 'Аккаунт не работает' };
+        return { status: 'error', message: \`Ошибка сети при получении ключа: \${error.message}\` };
     }
 
     if (!rsaData.success) {
-        return { status: 'error', message: 'Аккаунт не работает' };
+        return { status: 'error', message: 'аккаунт не работает (неверный логин)' };
     }
 
     let encryptedPasswordB64;
@@ -490,7 +402,7 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
         );
         encryptedPasswordB64 = encrypted.toString('base64');
     } catch (error) {
-        return { status: 'error', message: 'Аккаунт не работает' };
+        return { status: 'error', message: \`Ошибка шифрования: \${error.message}\` };
     }
 
     const payload = new URLSearchParams({
@@ -515,11 +427,14 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
         });
         loginData = loginResponse.data;
     } catch (error) {
-        return { status: 'error', message: 'Аккаунт не работает' };
+        if (error.response && error.response.status === 429) {
+            return { status: 'error', message: 'Слишком много попыток. Steam временно заблокировал запросы. Подождите 15-30 минут.' };
+        }
+        return { status: 'error', message: \`Ошибка сети при входе: \${error.message}\` };
     }
 
     if (loginData.success) {
-        return { status: 'success', message: 'Аккаунт работает' };
+        return { status: 'success', message: 'аккаунт работает (верный пароль)' };
     }
 
     if (loginData.captcha_needed) {
@@ -528,35 +443,35 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
             status: 'captcha',
             message: 'Требуется капча',
             captcha_gid: newCaptchaGid,
-            captcha_url: `https://steamcommunity.com/login/rendercaptcha/?gid=${newCaptchaGid}`
+            captcha_url: \`https://steamcommunity.com/login/rendercaptcha/?gid=\${newCaptchaGid}\`
         };
     }
 
-    return { status: 'error', message: 'Аккаунт не работает' };
+    if (loginData.requires_twofactor) {
+        return { status: 'error', message: 'аккаунт не работает (стоит стим гвард)' };
+    }
+
+    if (loginData.emailauth_needed) {
+        return { status: 'error', message: 'аккаунт не работает (требуется код из почты)' };
+    }
+
+    const msg = loginData.message || 'Неверный логин или пароль';
+    if (msg.toLowerCase().includes('incorrect') || msg.toLowerCase().includes('wrong')) {
+        return { status: 'error', message: 'аккаунт не работает (неверный пароль)' };
+    }
+
+    return { status: 'error', message: \`аккаунт не работает (\${msg})\` };
 }
 
-// Маршруты
 app.get('/', (req, res) => {
     res.send(HTML_TEMPLATE);
-});
-
-app.post('/ping', (req, res) => {
-    const { sessionId } = req.body;
-    if (sessionId) {
-        activeSessions.set(sessionId, Date.now());
-    }
-    res.json({ ok: true });
-});
-
-app.get('/stats', (req, res) => {
-    res.json({ online: activeSessions.size });
 });
 
 app.post('/check', async (req, res) => {
     const { username, password, captcha_gid, captcha_text } = req.body;
 
     if (!username || !password) {
-        return res.json({ status: 'error', message: 'Аккаунт не работает' });
+        return res.json({ status: 'error', message: 'Введите логин и пароль' });
     }
 
     const result = await checkSteamCredentials(
@@ -569,5 +484,5 @@ app.post('/check', async (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Сервер запущен на порту ${PORT}`);
+    console.log(\`Сервер запущен на порту \${PORT}\`);
 });
