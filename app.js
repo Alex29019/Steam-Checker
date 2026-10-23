@@ -114,7 +114,6 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
-            letter-spacing: 0.5px;
         }
         .nav-tab.active {
             background: rgba(0, 212, 255, 0.08);
@@ -217,8 +216,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             border-radius: 10px;
             font-size: 0.85rem;
             font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
+            letter-spacing: 1px;
             text-align: center;
             display: none;
             animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -236,8 +234,12 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             color: var(--err);
             box-shadow: 0 0 24px rgba(255, 51, 102, 0.08);
         }
+        .result.warn {
+            background: rgba(255, 184, 0, 0.05);
+            border: 1px solid rgba(255, 184, 0, 0.2);
+            color: var(--warn);
+        }
 
-        /* Shared Accounts Styles */
         .account-card {
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--border);
@@ -276,12 +278,11 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             padding: 10px;
             border-radius: 8px;
             font-weight: 700;
-            font-size: 0.85rem;
             text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 1px;
             display: none;
             animation: popIn 0.3s ease;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
         }
         .account-result.success {
             background: rgba(0, 255, 157, 0.1);
@@ -294,36 +295,28 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             border: 1px solid rgba(255, 51, 102, 0.3);
         }
 
-        /* Bypass Styles */
-        .bypass-list { display: flex; flex-direction: column; gap: 12px; }
-        .bypass-btn {
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            margin: 2rem 0 1.5rem 0;
+        }
+        .tg {
             display: flex;
             align-items: center;
-            gap: 14px;
-            padding: 16px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border);
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid rgba(42, 171, 238, 0.25);
             border-radius: 12px;
-            color: var(--text);
+            color: var(--tg);
             text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
             transition: all 0.3s ease;
-        }
-        .bypass-btn:hover {
-            border-color: var(--accent);
-            background: rgba(0, 212, 255, 0.05);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
-            transform: translateY(-2px);
-        }
-        .bypass-btn svg { width: 20px; height: 20px; color: var(--accent); flex-shrink: 0; }
-
-        .footer { margin-top: 2rem; padding: 0 4px; }
-        .tg {
-            display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px;
-            background: transparent; border: 1px solid rgba(42, 171, 238, 0.25); border-radius: 12px;
-            color: var(--tg); text-decoration: none; font-size: 0.85rem; font-weight: 700;
-            letter-spacing: 2px; text-transform: uppercase; transition: all 0.3s ease;
         }
         .tg:hover {
             border-color: rgba(42, 171, 238, 0.5);
@@ -347,10 +340,8 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
         <div class="nav-tabs">
             <div class="nav-tab active" data-view="checker">Проверка</div>
             <div class="nav-tab" data-view="accounts">Общие аккаунты</div>
-            <div class="nav-tab" data-view="bypass">Обходы</div>
         </div>
 
-        <!-- CHECKER VIEW -->
         <div id="checkerView" class="view-section active">
             <div class="section-header">
                 <h2>Auth Check</h2>
@@ -368,11 +359,10 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             <div class="result" id="result"></div>
         </div>
 
-        <!-- ACCOUNTS VIEW -->
         <div id="accountsView" class="view-section">
             <div class="section-header">
                 <h2>Общие аккаунты</h2>
-                <p>Нажмите кнопку, чтобы скопировать данные и начать проверку</p>
+                <p>Нажми на кнопку, чтобы скопировать данные и начать проверку</p>
             </div>
             <div class="account-card">
                 <div class="account-game">Cyberpunk 2077</div>
@@ -383,35 +373,9 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
                 <button class="btn" onclick="copyAndCheck('msk247542', 'rae246924', this)">
                     Скопировать и проверить
                 </button>
-                <div class="account-result"></div>
+                <div class="account-result" id="accountResult"></div>
             </div>
-        </div>
-
-        <!-- BYPASS VIEW -->
-        <div id="bypassView" class="view-section">
-            <div class="section-header">
-                <h2>Обходы лаунчеров</h2>
-                <p>Выберите необходимый инструмент</p>
-            </div>
-            <div class="bypass-list">
-                <a href="https://github.com/onajlikezz/Nightlight-Launcher/releases/download/NLLauncherV5.3.00/Nightlight.Launcher.Setup.5.3.0.exe" class="bypass-btn" target="_blank">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    <span>Обход Rockstar Launcher</span>
-                </a>
-                <a href="https://github.com/LightnigFast/Project-Lightning/releases/download/v5.0.11.0/ProjectLightningInstaller-v5.exe" class="bypass-btn" target="_blank">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
-                    </svg>
-                    <span>Универсальный обход</span>
-                </a>
-            </div>
-        </div>
-
-        <div class="footer">
+            <div class="divider"></div>
             <a href="https://t.me/MirArenDaff" target="_blank" class="tg">
                 <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.119.098.152.228.166.319.016.101.017.204.011.285z"/></svg>
                 Подпишись
@@ -420,7 +384,6 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
     </div>
 
     <script>
-        // Tab switching
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -430,7 +393,6 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             });
         });
 
-        // Copy and Check function for shared accounts
         async function copyAndCheck(login, password, btn) {
             try {
                 await navigator.clipboard.writeText(login + ':' + password);
@@ -438,10 +400,10 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
                 console.error('Failed to copy', err);
             }
 
-            const resultDiv = btn.nextElementSibling;
+            const resDiv = document.getElementById('accountResult');
             btn.disabled = true;
             btn.textContent = 'Проверка...';
-            resultDiv.style.display = 'none';
+            resDiv.style.display = 'none';
 
             try {
                 const response = await fetch('/check', {
@@ -451,25 +413,24 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
                 });
                 const data = await response.json();
 
-                resultDiv.style.display = 'block';
+                resDiv.style.display = 'block';
                 if (data.status === 'success') {
-                    resultDiv.className = 'account-result success';
-                    resultDiv.textContent = 'Аккаунт работает';
+                    resDiv.className = 'account-result success';
+                    resDiv.textContent = 'Аккаунт работает! ' + (data.message.includes('Guard') ? '(Steam Guard)' : '');
                 } else {
-                    resultDiv.className = 'account-result error';
-                    resultDiv.textContent = 'Аккаунт не работает';
+                    resDiv.className = 'account-result error';
+                    resDiv.textContent = 'Аккаунт не работает';
                 }
             } catch (error) {
-                resultDiv.style.display = 'block';
-                resultDiv.className = 'account-result error';
-                resultDiv.textContent = 'Ошибка соединения';
+                resDiv.style.display = 'block';
+                resDiv.className = 'account-result error';
+                resDiv.textContent = 'Ошибка соединения';
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Скопировать и проверить';
             }
         }
 
-        // Checker logic
         let cooldownTimer = null;
         const COOLDOWN = 15;
 
@@ -509,7 +470,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
                 });
                 return await r.json();
             } catch (e) {
-                return { status: 'error', message: 'Ошибка соединения' };
+                return { status: 'error', message: 'Ошибка сети' };
             }
         }
 
@@ -530,7 +491,9 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             const data = await doCheck(u, p);
             
             if (data.status === 'success') {
-                showResult('ok', 'Аккаунт работает');
+                showResult('ok', 'Аккаунт работает' + (data.message.includes('Guard') ? ' (Steam Guard)' : ''));
+            } else if (data.status === 'captcha') {
+                showResult('warn', 'Требуется капча');
             } else {
                 showResult('err', 'Аккаунт не работает');
             }
@@ -540,7 +503,6 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             startCooldown();
         });
 
-        // Background ping for stats
         let sid = sessionStorage.getItem('sid');
         if (!sid) {
             sid = Math.random().toString(36).substring(2, 15);
@@ -559,7 +521,36 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 </body>
 </html>`;
 
-async function checkSteamCredentials(username, password) {
+function buildRSAPublicKeyPEM(modHex, expHex) {
+    const modBuf = Buffer.from(modHex, 'hex');
+    const expBuf = Buffer.from(expHex, 'hex');
+    function derLength(len) {
+        if (len < 128) return Buffer.from([len]);
+        const bytes = []; let l = len;
+        while (l > 0) { bytes.unshift(l & 0xff); l >>= 8; }
+        return Buffer.from([0x80 | bytes.length, ...bytes]);
+    }
+    function derTag(tag, content) { return Buffer.concat([Buffer.from([tag]), derLength(content.length), content]); }
+    function derInteger(buf) {
+        if (buf.length > 0 && (buf[0] & 0x80)) buf = Buffer.concat([Buffer.from([0x00]), buf]);
+        return derTag(0x02, buf);
+    }
+    function derSequence(items) { return derTag(0x30, Buffer.concat(items)); }
+    function derBitString(content) { return derTag(0x03, Buffer.concat([Buffer.from([0x00]), content])); }
+    function derOid(oidBytes) { return derTag(0x06, oidBytes); }
+    function derNull() { return Buffer.from([0x05, 0x00]); }
+
+    const rsaPublicKey = derSequence([derInteger(modBuf), derInteger(expBuf)]);
+    const algorithmIdentifier = derSequence([
+        derOid(Buffer.from([0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01])),
+        derNull()
+    ]);
+    const subjectPublicKeyInfo = derSequence([algorithmIdentifier, derBitString(rsaPublicKey)]);
+    const b64 = subjectPublicKeyInfo.toString('base64');
+    return `-----BEGIN PUBLIC KEY-----\n${b64.match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----`;
+}
+
+async function checkSteamCredentials(username, password, captchaGid = '-1', captchaText = '') {
     const headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Referer': 'https://steamcommunity.com/login/home/?goto=',
@@ -570,50 +561,47 @@ async function checkSteamCredentials(username, password) {
 
     let rsaData, sessionCookies = '';
     try {
-        const rsaResponse = await axios.get('https://steamcommunity.com/login/getrsakey', { params: { username }, headers, timeout: 10000 });
+        const rsaResponse = await axios.get('https://steamcommunity.com/login/getrsakey', { 
+            params: { username }, 
+            headers, 
+            timeout: 10000 
+        });
         rsaData = rsaResponse.data;
         if (rsaResponse.headers['set-cookie']) {
             sessionCookies = rsaResponse.headers['set-cookie'].map(c => c.split(';')[0]).join('; ');
         }
-    } catch (error) { return { status: 'error', message: 'Аккаунт не работает' }; }
+    } catch (error) { 
+        return { status: 'error', message: 'Ошибка сети при проверке' }; 
+    }
 
-    if (!rsaData.success) return { status: 'error', message: 'Аккаунт не работает' };
+    if (!rsaData.success) {
+        return { status: 'error', message: 'Аккаунт не работает (неверный логин)' };
+    }
 
     let encryptedPasswordB64;
     try {
-        const modBuf = Buffer.from(rsaData.publickey_mod, 'hex');
-        const expBuf = Buffer.from(rsaData.publickey_exp, 'hex');
-        
-        function derLength(len) {
-            if (len < 128) return Buffer.from([len]);
-            const bytes = []; let l = len;
-            while (l > 0) { bytes.unshift(l & 0xff); l >>= 8; }
-            return Buffer.from([0x80 | bytes.length, ...bytes]);
-        }
-        function derTag(tag, content) { return Buffer.concat([Buffer.from([tag]), derLength(content.length), content]); }
-        function derInteger(buf) {
-            if (buf.length > 0 && (buf[0] & 0x80)) buf = Buffer.concat([Buffer.from([0x00]), buf]);
-            return derTag(0x02, buf);
-        }
-        function derSequence(items) { return derTag(0x30, Buffer.concat(items)); }
-        function derBitString(content) { return derTag(0x03, Buffer.concat([Buffer.from([0x00]), content])); }
-        function derOid(oidBytes) { return derTag(0x06, oidBytes); }
-        function derNull() { return Buffer.from([0x05, 0x00]); }
-
-        const rsaPublicKey = derSequence([derInteger(modBuf), derInteger(expBuf)]);
-        const algorithmIdentifier = derSequence([derOid(Buffer.from([0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01])), derNull()]);
-        const subjectPublicKeyInfo = derSequence([algorithmIdentifier, derBitString(rsaPublicKey)]);
-        const b64 = subjectPublicKeyInfo.toString('base64');
-        const publicKeyPem = `-----BEGIN PUBLIC KEY-----\n${b64.match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----`;
-
-        const encrypted = crypto.publicEncrypt({ key: publicKeyPem, padding: crypto.constants.RSA_PKCS1_PADDING }, Buffer.from(password, 'utf-8'));
+        const publicKeyPem = buildRSAPublicKeyPEM(rsaData.publickey_mod, rsaData.publickey_exp);
+        const encrypted = crypto.publicEncrypt(
+            { key: publicKeyPem, padding: crypto.constants.RSA_PKCS1_PADDING }, 
+            Buffer.from(password, 'utf-8')
+        );
         encryptedPasswordB64 = encrypted.toString('base64');
-    } catch (error) { return { status: 'error', message: 'Аккаунт не работает' }; }
+    } catch (error) { 
+        return { status: 'error', message: 'Ошибка шифрования' }; 
+    }
 
     const payload = new URLSearchParams({
-        username, password: encryptedPasswordB64, twofactorcode: '', emailauth: '', loginfriendlyname: '',
-        captchagid: '-1', captcha_text: '', emailsteamid: '', rsatimestamp: rsaData.timestamp,
-        remember_login: 'false', donotcache: Date.now().toString()
+        username,
+        password: encryptedPasswordB64,
+        twofactorcode: '',
+        emailauth: '',
+        loginfriendlyname: '',
+        captchagid: captchaGid,
+        captcha_text: captchaText,
+        emailsteamid: '',
+        rsatimestamp: rsaData.timestamp,
+        remember_login: 'false',
+        donotcache: Date.now().toString()
     });
 
     const loginHeaders = { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' };
@@ -621,11 +609,39 @@ async function checkSteamCredentials(username, password) {
 
     let loginData;
     try {
-        const loginResponse = await axios.post('https://steamcommunity.com/login/dologin/', payload.toString(), { headers: loginHeaders, timeout: 10000 });
+        const loginResponse = await axios.post('https://steamcommunity.com/login/dologin/', payload.toString(), { 
+            headers: loginHeaders, 
+            timeout: 10000 
+        });
         loginData = loginResponse.data;
-    } catch (error) { return { status: 'error', message: 'Аккаунт не работает' }; }
+    } catch (error) { 
+        return { status: 'error', message: 'Ошибка сети при входе' }; 
+    }
 
-    if (loginData.success) return { status: 'success', message: 'Аккаунт работает' };
+    // ПОЛНОЦЕННАЯ ПРОВЕРКА:
+    if (loginData.success) {
+        return { status: 'success', message: 'Аккаунт работает' };
+    }
+
+    // Если требуется код Steam Guard (мобильный аутентификатор), значит пароль ВЕРНЫЙ!
+    if (loginData.requires_twofactor) {
+        return { status: 'success', message: 'Аккаунт работает (установлен Steam Guard)' };
+    }
+
+    // Если требуется код с почты, значит пароль ВЕРНЫЙ!
+    if (loginData.emailauth_needed) {
+        return { status: 'success', message: 'Аккаунт работает (требуется код с почты)' };
+    }
+
+    if (loginData.captcha_needed) {
+        return { status: 'captcha', message: 'Требуется капча', captcha_gid: loginData.captcha_gid || '-1' };
+    }
+
+    // Если Steam вернул конкретную ошибку (например, "Incorrect password")
+    if (loginData.message) {
+        return { status: 'error', message: `Аккаунт не работает (${loginData.message})` };
+    }
+
     return { status: 'error', message: 'Аккаунт не работает' };
 }
 
@@ -639,9 +655,9 @@ app.post('/ping', (req, res) => {
 app.get('/stats', (req, res) => res.json({ online: activeSessions.size }));
 
 app.post('/check', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, captcha_gid, captcha_text } = req.body;
     if (!username || !password) return res.json({ status: 'error', message: 'Аккаунт не работает' });
-    const result = await checkSteamCredentials(username.trim(), password.trim());
+    const result = await checkSteamCredentials(username.trim(), password.trim(), captcha_gid || '-1', captcha_text || '');
     res.json(result);
 });
 
