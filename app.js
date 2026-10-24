@@ -358,13 +358,6 @@ const sharedAccounts = [
   { game: "Библиотека: Lego Marvel Super Heroes", login: "twistnewold", password: "5sMgwST4L5j" }
 ];
 
-// Превращаем массив в безопасную JSON-строку для вставки в HTML.
-// Экранируем <, >, & чтобы случайно не закрыть тег <script>
-const accountsJson = JSON.stringify(sharedAccounts)
-    .replace(/</g, '\\u003c')
-    .replace(/>/g, '\\u003e')
-    .replace(/&/g, '\\u0026');
-
 const HTML_TEMPLATE = `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -410,7 +403,6 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
         .nav-tab {
             flex: 1; padding: 12px; text-align: center; font-size: 0.85rem; font-weight: 600;
             color: var(--text-muted); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
-            user-select: none;
         }
         .nav-tab.active {
             background: rgba(0, 212, 255, 0.08); color: var(--accent);
@@ -442,14 +434,9 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
         .result.ok { background: rgba(0, 255, 157, 0.05); border: 1px solid rgba(0, 255, 157, 0.2); color: var(--ok); }
         .result.err { background: rgba(255, 51, 102, 0.05); border: 1px solid rgba(255, 51, 102, 0.2); color: var(--err); }
         .result.warn { background: rgba(255, 184, 0, 0.05); border: 1px solid rgba(255, 184, 0, 0.2); color: var(--warn); }
-
+        
         /* Стили для вкладки аккаунтов */
-        .search-box { margin-bottom: 1rem; }
-        .search-box input {
-            width: 100%; padding: 14px 16px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border);
-            border-radius: 10px; color: var(--text); font-size: 0.95rem; outline: none; transition: all 0.3s ease;
-        }
-        .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        .search-box { margin-bottom: 1.5rem; }
         .accounts-grid {
             display: grid; grid-template-columns: 1fr; gap: 12px; max-height: 500px;
             overflow-y: auto; padding-right: 4px;
@@ -475,13 +462,11 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             flex: 1; font-size: 0.85rem; color: var(--text); font-family: 'Consolas', monospace;
             background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            min-width: 0;
         }
         .copy-btn {
             width: auto; padding: 8px 12px; margin: 0; background: rgba(0, 212, 255, 0.1);
             border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 6px; color: var(--accent);
             font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
-            flex-shrink: 0;
         }
         .copy-btn:hover { background: rgba(0, 212, 255, 0.2); }
         .copy-btn.copied { background: rgba(0, 255, 157, 0.2); border-color: var(--ok); color: var(--ok); }
@@ -525,16 +510,6 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
     </div>
 
     <script>
-        // Данные переданы с сервера
-        const sharedAccounts = ${accountsJson};
-
-        // Экранирование HTML-спецсимволов
-        function escapeHtml(str) {
-            return String(str == null ? '' : str).replace(/[&<>"']/g, function(c) {
-                return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
-            });
-        }
-
         // Переключение вкладок
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -549,21 +524,21 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
         // Рендер аккаунтов
         function renderAccounts(accounts) {
             const grid = document.getElementById('accountsGrid');
-            if (!accounts || accounts.length === 0) {
+            if (accounts.length === 0) {
                 grid.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">Ничего не найдено</div>';
                 return;
             }
             grid.innerHTML = accounts.map((acc, index) => \`
                 <div class="account-card">
-                    <div class="account-game">\${escapeHtml(acc.game)}</div>
+                    <div class="account-game">\${acc.game}</div>
                     <div class="account-row">
                         <span class="account-label">Логин</span>
-                        <span class="account-value" id="login-\${index}">\${escapeHtml(acc.login)}</span>
+                        <span class="account-value" id="login-\${index}">\${acc.login}</span>
                         <button class="copy-btn" onclick="copyText('login-\${index}', this)">Копировать</button>
                     </div>
                     <div class="account-row">
                         <span class="account-label">Пароль</span>
-                        <span class="account-value" id="pass-\${index}">\${escapeHtml(acc.password)}</span>
+                        <span class="account-value" id="pass-\${index}">\${acc.password}</span>
                         <button class="copy-btn" onclick="copyText('pass-\${index}', this)">Копировать</button>
                     </div>
                 </div>
@@ -579,44 +554,15 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 
         // Копирование в буфер
         function copyText(elementId, btn) {
-            const el = document.getElementById(elementId);
-            if (!el) return;
-            const text = el.textContent;
-            const onSuccess = () => {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
                 btn.textContent = 'Скопировано!';
                 btn.classList.add('copied');
                 setTimeout(() => {
                     btn.textContent = 'Копировать';
                     btn.classList.remove('copied');
                 }, 1500);
-            };
-            const onError = () => {
-                btn.textContent = 'Ошибка';
-                setTimeout(() => { btn.textContent = 'Копировать'; }, 1500);
-            };
-
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
-                    // fallback
-                    if (fallbackCopy(text)) onSuccess(); else onError();
-                });
-            } else {
-                if (fallbackCopy(text)) onSuccess(); else onError();
-            }
-        }
-
-        function fallbackCopy(text) {
-            try {
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                ta.style.position = 'fixed';
-                ta.style.opacity = '0';
-                document.body.appendChild(ta);
-                ta.select();
-                const ok = document.execCommand('copy');
-                document.body.removeChild(ta);
-                return ok;
-            } catch (e) { return false; }
+            });
         }
 
         // Логика проверки
@@ -645,20 +591,20 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             const p = document.getElementById('password').value.trim();
             const btn = document.getElementById('checkBtn');
             const res = document.getElementById('result');
-
+            
             if (!u || !p) {
                 res.className = 'result err'; res.textContent = 'Заполните все поля'; res.style.display = 'block'; return;
             }
-
+            
             btn.disabled = true; btn.textContent = 'Проверка...'; res.style.display = 'none';
-
+            
             try {
                 const response = await fetch('/check', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: u, password: p })
                 });
                 const data = await response.json();
-
+                
                 if (data.status === 'success') {
                     res.className = 'result ok'; res.textContent = 'Аккаунт работает';
                 } else {
@@ -695,7 +641,7 @@ async function checkSteamCredentials(username, password) {
     try {
         const modBuf = Buffer.from(rsaData.publickey_mod, 'hex');
         const expBuf = Buffer.from(rsaData.publickey_exp, 'hex');
-
+        
         function derLength(len) {
             if (len < 128) return Buffer.from([len]);
             const bytes = []; let l = len;
@@ -716,7 +662,7 @@ async function checkSteamCredentials(username, password) {
         const algorithmIdentifier = derSequence([derOid(Buffer.from([0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01])), derNull()]);
         const subjectPublicKeyInfo = derSequence([algorithmIdentifier, derBitString(rsaPublicKey)]);
         const b64 = subjectPublicKeyInfo.toString('base64');
-        const publicKeyPem = \`-----BEGIN PUBLIC KEY-----\\n\${b64.match(/.{1,64}/g).join('\\n')}\\n-----END PUBLIC KEY-----\`;
+        const publicKeyPem = `-----BEGIN PUBLIC KEY-----\n${b64.match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----`;
 
         const encrypted = crypto.publicEncrypt({ key: publicKeyPem, padding: crypto.constants.RSA_PKCS1_PADDING }, Buffer.from(password, 'utf-8'));
         encryptedPasswordB64 = encrypted.toString('base64');
@@ -747,4 +693,4 @@ app.post('/check', async (req, res) => {
     res.json(result);
 });
 
-app.listen(PORT, '0.0.0.0', () => console.log(\`Сервер запущен на порту \${PORT}\`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Сервер запущен на порту ${PORT}`));
