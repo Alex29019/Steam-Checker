@@ -284,7 +284,7 @@ const sharedAccounts = [
   { game: "Библиотека: GTA lV, GTA V, Days Gone, Farcry 5, Farcry Primal, Tom Raider Triology, Sleeping Dogs, Max Payne 3, Just Cause 2 / 3, Star Wars Jedi Fallen Order, For Honor и многое другое...", login: "dukanvaettname", password: "bananvagen1" },
   { game: "Библиотека: Ghost Of Tsushima", login: "fuogl63477", password: "siuk94330T" },
   { game: "Библиотека: Gang Beasts", login: "cwn_apollo2", password: "LiamWright05102005" },
-  { game: "Библиотека: Garry’s mod, Hollow knight, Geometry dash, Resident evil 7 teaser: beginning hour, Forza horizon 5, The forest, Hollow knight: silksong, Metro 2033 redux, BeamNG.drive, Arc raiders, Palword, Among us, Hitman world of assassination, Terraria, Spore, Far cry 3, Cities: skylines, Mafia III: definitive edition, Train sim world 6, Detroit: become human, Left 4 dead 2, Dead by daylight, Euro truck simulator 2, Doom eternal, Raft", login: "rvmxh26513", password: "cLKz95R5f1" },
+  { game: "Библиотека: Garry's mod, Hollow knight, Geometry dash, Resident evil 7 teaser: beginning hour, Forza horizon 5, The forest, Hollow knight: silksong, Metro 2033 redux, BeamNG.drive, Arc raiders, Palword, Among us, Hitman world of assassination, Terraria, Spore, Far cry 3, Cities: skylines, Mafia III: definitive edition, Train sim world 6, Detroit: become human, Left 4 dead 2, Dead by daylight, Euro truck simulator 2, Doom eternal, Raft", login: "rvmxh26513", password: "cLKz95R5f1" },
   { game: "Библиотека: Phasmophobia, Mortal combat X, South Park the fractured but whole, CarX drifting online, Dark deception, Skater xl", login: "majinluffy1420", password: "Supreme1025" },
   { game: "Библиотека: Marvel's Spider Man 2", login: "sp2_by_heero", password: "https://t.me/steamaccountsog" },
   { game: "Библиотека: Doom Eternal, Borderlands 2, Russian Fishing 4, Postal, Warframe", login: "99892722", password: "04216324" },
@@ -358,8 +358,7 @@ const sharedAccounts = [
   { game: "Библиотека: Lego Marvel Super Heroes", login: "twistnewold", password: "5sMgwST4L5j" }
 ];
 
-// Превращаем массив в безопасную JSON-строку для вставки в HTML.
-// Экранируем <, >, & чтобы случайно не закрыть тег <script>
+// Безопасная JSON-строка для вставки в <script> внутри HTML
 const accountsJson = JSON.stringify(sharedAccounts)
     .replace(/</g, '\\u003c')
     .replace(/>/g, '\\u003e')
@@ -443,7 +442,6 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
         .result.err { background: rgba(255, 51, 102, 0.05); border: 1px solid rgba(255, 51, 102, 0.2); color: var(--err); }
         .result.warn { background: rgba(255, 184, 0, 0.05); border: 1px solid rgba(255, 184, 0, 0.2); color: var(--warn); }
 
-        /* Стили для вкладки аккаунтов */
         .search-box { margin-bottom: 1rem; }
         .search-box input {
             width: 100%; padding: 14px 16px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border);
@@ -525,17 +523,14 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
     </div>
 
     <script>
-        // Данные переданы с сервера
-        const sharedAccounts = ${accountsJson};
+        const sharedAccounts = \${accountsJson};
 
-        // Экранирование HTML-спецсимволов
         function escapeHtml(str) {
             return String(str == null ? '' : str).replace(/[&<>"']/g, function(c) {
                 return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
             });
         }
 
-        // Переключение вкладок
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -546,7 +541,6 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             });
         });
 
-        // Рендер аккаунтов
         function renderAccounts(accounts) {
             const grid = document.getElementById('accountsGrid');
             if (!accounts || accounts.length === 0) {
@@ -570,14 +564,12 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             \`).join('');
         }
 
-        // Поиск
         function filterAccounts() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const filtered = sharedAccounts.filter(acc => acc.game.toLowerCase().includes(query));
             renderAccounts(filtered);
         }
 
-        // Копирование в буфер
         function copyText(elementId, btn) {
             const el = document.getElementById(elementId);
             if (!el) return;
@@ -597,7 +589,6 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
-                    // fallback
                     if (fallbackCopy(text)) onSuccess(); else onError();
                 });
             } else {
@@ -619,7 +610,6 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             } catch (e) { return false; }
         }
 
-        // Логика проверки
         let cooldownTimer = null;
         function startCooldown() {
             const btn = document.getElementById('checkBtn');
@@ -716,7 +706,7 @@ async function checkSteamCredentials(username, password) {
         const algorithmIdentifier = derSequence([derOid(Buffer.from([0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01])), derNull()]);
         const subjectPublicKeyInfo = derSequence([algorithmIdentifier, derBitString(rsaPublicKey)]);
         const b64 = subjectPublicKeyInfo.toString('base64');
-        const publicKeyPem = \`-----BEGIN PUBLIC KEY-----\\n\${b64.match(/.{1,64}/g).join('\\n')}\\n-----END PUBLIC KEY-----\`;
+        const publicKeyPem = `-----BEGIN PUBLIC KEY-----\n${b64.match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----`;
 
         const encrypted = crypto.publicEncrypt({ key: publicKeyPem, padding: crypto.constants.RSA_PKCS1_PADDING }, Buffer.from(password, 'utf-8'));
         encryptedPasswordB64 = encrypted.toString('base64');
@@ -747,4 +737,4 @@ app.post('/check', async (req, res) => {
     res.json(result);
 });
 
-app.listen(PORT, '0.0.0.0', () => console.log(\`Сервер запущен на порту \${PORT}\`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Сервер запущен на порту ${PORT}`));
