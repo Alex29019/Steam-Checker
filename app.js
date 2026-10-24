@@ -59,7 +59,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
             width: 100%;
-            max-width: 440px;
+            max-width: 600px;
             position: relative;
             animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -261,11 +261,81 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             background: #fff;
         }
 
-        .bypass-list {
+        .bypass-list, .accounts-grid {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
+        .accounts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .accounts-grid::-webkit-scrollbar { width: 6px; }
+        .accounts-grid::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.2); border-radius: 3px; }
+        
+        .account-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+        .account-card:hover {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.05);
+            transform: translateY(-2px);
+        }
+        .account-games {
+            font-size: 0.85rem;
+            color: var(--text);
+            margin-bottom: 12px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .account-card .copy-btn {
+            width: 100%;
+            padding: 8px;
+            font-size: 0.75rem;
+            margin-top: 0;
+            background: transparent;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            color: var(--accent);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .account-card .copy-btn:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+        .account-result {
+            margin-top: 8px;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-align: center;
+            display: none;
+        }
+        .account-result.ok {
+            background: rgba(0, 255, 157, 0.1);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            color: var(--ok);
+        }
+        .account-result.err {
+            background: rgba(255, 51, 102, 0.1);
+            border: 1px solid rgba(255, 51, 102, 0.3);
+            color: var(--err);
+        }
+
         .bypass-btn {
             display: flex;
             align-items: center;
@@ -307,6 +377,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 
         <div class="nav-tabs">
             <div class="nav-tab active" data-view="checker">Проверка</div>
+            <div class="nav-tab" data-view="accounts">Общие аккаунты</div>
             <div class="nav-tab" data-view="bypass">Обходы лаунчеров</div>
         </div>
 
@@ -337,6 +408,15 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             <div class="result" id="result"></div>
         </div>
 
+        <!-- ACCOUNTS VIEW -->
+        <div id="accountsView" class="view-section">
+            <div class="section-header">
+                <h2>Общие аккаунты</h2>
+                <p>Нажмите кнопку, чтобы скопировать данные и проверить аккаунт</p>
+            </div>
+            <div class="accounts-grid" id="accountsGrid"></div>
+        </div>
+
         <!-- BYPASS VIEW -->
         <div id="bypassView" class="view-section">
             <div class="section-header">
@@ -363,6 +443,59 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
     </div>
 
     <script>
+        const sharedAccounts = [
+    { games: "UNCHARTED™: Legacy of Thieves Collection", login: "uncharted_st", password: "UNCHARTED@8804" },
+    { games: "Forza Horizon 4, ARK Survival, LEGO Batman.", login: "nmsukt191", password: "batzaza191" },
+    { games: "Black Myth Wukong", login: "gfk66337", password: "Acp234213" },
+    { games: "Grand Theth Auto 5, Resident Evil 2, Resident Evil 3, Ведьмак 3: Д", login: "0855j9", password: "zZ10301030" },
+    { games: "Marvel's Spider Man 2", login: "groggymovement4", password: "DCN_LliOQhv" },
+    { games: "Red Dead Redemption 2", login: "ynysa422", password: "@Gamerspace123" },
+    { games: "NBA 2K20, Grand Theth Auto San Andreas, Grand Theth Auto 5.", login: "rnmiike", password: "THEGODMIKE1" },
+    { games: "Marvel's Spider Man Remastered", login: "mklvn2y9", password: "zhizhure1221" },
+    { games: "The Last Of Us 2 Remastered, The Last Of Us Remastered, Geometry", login: "STEAMGAMESTT1", password: "funpay.com/users/6932278/" },
+    { games: "Hogwarts Legacy", login: "nicasacracacenri", password: "EBA9Y59KGCTB" },
+    { games: "Resident Evil 7 Biohazard", login: "jocuriargenrinia", password: "70Games.net92" },
+    { games: "Grand Theft Auto 4", login: "wqm322495", password: "ac7QPfa3" },
+    { games: "Horizon Forbidden West Complete Edition", login: "vonterr", password: "889162" },
+    { games: "Cyberpunk 2077", login: "orderlyinoculat", password: "axQUk8etMajK" },
+    { games: "Dying Light 2 Stay Human, Dying Light, Sons Of The Forest, The", login: "earthlnwza5566", password: "2G6TEM5ZAZC6" },
+    { games: "Euro Truck Simulator 2", login: "nfpprsq3h", password: "f1qslg5kp" },
+    { games: "Atomic Heart.", login: "wf6ju3bf5wc3", password: "qKnh6N9SLiMxyvXVX36d" },
+    { games: "Forza Horizon 5", login: "bej01201", password: "Bejdw11201" },
+    { games: "Call Of Duty Modern Warfare 2, Efootball Pes 2021.", login: "dimkoxd", password: "2G6TEM5ZAZC6" },
+    { games: "Mortal Kombat 11, Euro Truck Simulator 2", login: "steam123z17", password: "ZXCVBNMQQ" },
+    { games: "Mortal Kombat 1", login: "Mortalk1pehkflt01", password: "TGVBFRETt01" },
+    { games: "Farming Simulator 25", login: "neylavewe1985", password: "wFbmEcKQ" },
+    { games: "Все части игр Metro, Sons Of The Forest, Dying Light, Ведьмак 3 Д", login: "negri_pidor1488", password: "fjbjnoDEFSjkndfgzhjkoCDSA09" },
+    { games: "FIFA 22", login: "xxyenlover", password: "34cv56BN" },
+    { games: "Terraria, Baldi's Basics Classic Remastered.", login: "quincypugy", password: "0Heh%v4SSG" },
+    { games: "Hearts Of Iron 4, Batman Arkham Asylum.", login: "meteprotr", password: "3D88ASX2AMCG" },
+    { games: "Ведьмак 3: Дикая Охота, ARK Survival.", login: "thnavud1", password: "0641769856Za" },
+    { games: "Call Of Duty Modern Warfare 2019, Marvel 's Spider Man Remastere", login: "soham123419", password: "Funpay-0nibist" },
+    { games: "The Forest, Outlast 2.", login: "hhied98481", password: "Deaiwoq217" },
+    { games: "Detroit: Become Human", login: "Detroit_st", password: "DETROIT@7401" },
+    { games: "Resident Evil 4 Remake", login: "bejdw24074", password: "steamkk.com" },
+    { games: "Dying Light, Euro Truck Simulator 2, Left 4 Dead 2.", login: "YaKrycheVasFP", password: "VM@KLGT8W34C" },
+    { games: "Forza Horizon 5 + все DLC", login: "pq3sz8ar9rx8", password: "SZ7ZF8YSFCXE" },
+    { games: "Call Of Duty Black Ops 3", login: "xbeverysketch", password: "st3@mxx645" },
+    { games: "FIFA 21, FIFA 22", login: "rd5977", password: "951753852.ACHU" },
+    { games: "Days Gone, Ea Sports FC 24, Grand Theth Auto 5", login: "juscelinolira", password: "CDTBTD66XEX6" },
+    { games: "Sons Of The Fores, The Forest, Shedule, R.E.P.O, Hitman Absolu", login: "SDACHAvARENDY01", password: "$j2si2jLDSJFJ2Nsj" },
+    { games: "Elden Ring, Ведьмак 3.", login: "shushi_elden_ring", password: "Owner_shushiGames_Seller" },
+    { games: "Red Dead Redemption 2, Ведьмак 3.", login: "red_dead_profix", password: "DASjsaj72ow8" },
+    { games: "Call Of Duty Modern Warfare 3, GTA 4, Call Of Duty Modern Warfa", login: "sunzshiine", password: "msmb1122" },
+    { games: "Call Of Duty WW2", login: "pandagame4418", password: "cod1452141" },
+    { games: "Silent Hill 2", login: "aboodack", password: "DC5Z25E465DX" },
+    { games: "Battlefield 5, ARK Survival.", login: "zhangben6662", password: "BNKGTsnMWu" },
+    { games: "Metro Last Light Redux, Metro Exodus, Cyberpunk 2077, The Fore", login: "cyberhitler1488", password: "Bbuv837FSgnB2" },
+    { games: "Ghost Of Tsushima", login: "gihmt99337", password: "my_funpay_dtgame" },
+    { games: "Black Myth Wukong", login: "mario_wukong", password: "QCP7PFHMW4VV" },
+    { games: "Assetto Corsa, Euro Truck Simulator 2, City Car Driving, My Summ", login: "ShezyyyFunPay", password: "funpay.com/users/8943271/" },
+    { games: "Metro Exodus и ещё куча других крутых игр.", login: "opgarpstore1", password: "safEA24O-" },
+    { games: "Marvel's Spider Man Miles Morales, Hello Neighbor.", login: "polszymek123", password: "Funpay-Onibist1" },
+    { games: "Mafia 2 Definitive Edition, The Elder Scrolls 5 Skyrim.", login: "hazer3", password: "S2477TT27EC6" }
+];
+        
         // Tab switching
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -370,8 +503,60 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
                 document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
                 tab.classList.add('active');
                 document.getElementById(tab.dataset.view + 'View').classList.add('active');
+                if (tab.dataset.view === 'accounts') {
+                    renderAccounts();
+                }
             });
         });
+
+        function renderAccounts() {
+            const grid = document.getElementById('accountsGrid');
+            if (grid.children.length > 0) return;
+            
+            grid.innerHTML = sharedAccounts.map((acc, index) => \`
+                <div class="account-card">
+                    <div class="account-games">\${acc.games}</div>
+                    <button class="copy-btn" onclick="copyAndCheck(\${index}, this)">
+                        Скопировать и проверить
+                    </button>
+                    <div class="account-result" id="accResult_\${index}"></div>
+                </div>
+            \`).join('');
+        }
+
+        function copyAndCheck(index, btnElement) {
+            const acc = sharedAccounts[index];
+            const text = \`\${acc.login}:\${acc.password}\`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btnElement.textContent;
+                btnElement.textContent = 'Копировано! Проверка...';
+                btnElement.disabled = true;
+                
+                doCheck(acc.login, acc.password, '-1', '').then(data => {
+                    const resDiv = document.getElementById(\`accResult_\${index}\`);
+                    resDiv.style.display = 'block';
+                    if (data.status === 'success') {
+                        resDiv.className = 'account-result ok';
+                        resDiv.textContent = 'Аккаунт работает';
+                    } else {
+                        resDiv.className = 'account-result err';
+                        resDiv.textContent = 'Аккаунт не работает';
+                    }
+                    btnElement.textContent = originalText;
+                    btnElement.disabled = false;
+                }).catch(() => {
+                    const resDiv = document.getElementById(\`accResult_\${index}\`);
+                    resDiv.style.display = 'block';
+                    resDiv.className = 'account-result err';
+                    resDiv.textContent = 'Ошибка проверки';
+                    btnElement.textContent = originalText;
+                    btnElement.disabled = false;
+                });
+            }).catch(err => {
+                console.error('Copy failed', err);
+            });
+        }
 
         let captchaGid = '-1';
         let cooldownTimer = null;
@@ -484,7 +669,6 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             startCooldown();
         });
 
-        // Background ping for stats (kept for backend compatibility)
         let sid = sessionStorage.getItem('sid');
         if (!sid) {
             sid = Math.random().toString(36).substring(2, 15);
