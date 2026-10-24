@@ -758,10 +758,19 @@ async function checkSteamCredentials(username, password, captchaGid = '-1', capt
         loginData = loginResponse.data;
     } catch (error) { return { status: 'error', message: 'Аккаунт не работает' }; }
 
+    // ПОЛНАЯ ПРОВЕРКА - если пароль верный, Steam может запросить 2FA или email код
     if (loginData.success) return { status: 'success', message: 'Аккаунт работает' };
+    
+    // Если требуется Steam Guard код, значит пароль ВЕРНЫЙ
+    if (loginData.requires_twofactor) return { status: 'success', message: 'Аккаунт работает (Steam Guard)' };
+    
+    // Если требуется код с почты, значит пароль ВЕРНЫЙ
+    if (loginData.emailauth_needed) return { status: 'success', message: 'Аккаунт работает (Email)' };
+    
     if (loginData.captcha_needed) {
         return { status: 'captcha', message: 'Требуется капча', captcha_gid: loginData.captcha_gid || '-1' };
     }
+    
     return { status: 'error', message: 'Аккаунт не работает' };
 }
 
